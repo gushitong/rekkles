@@ -23,7 +23,7 @@ This benchmark running on my local mac, aryadb has better performance on SSD.
 
 * redis benchmark:
 
-
+```bash
     $ redis-benchmark -p 6379 -t get,set -n 50000 -r 50000  -e
     ====== SET ======
       50000 requests completed in 0.90 seconds
@@ -53,11 +53,11 @@ This benchmark running on my local mac, aryadb has better performance on SSD.
     99.98% <= 3 milliseconds
     100.00% <= 3 milliseconds
     59031.88 requests per second
-
+```
 
 * aryadb benchmark:
 
-
+```bash
     $ redis-benchmark -p 6380 -t get,set -n 50000 -r 50000  -e
     ====== SET ======
       50000 requests completed in 1.62 seconds
@@ -81,3 +81,4 @@ This benchmark running on my local mac, aryadb has better performance on SSD.
     99.88% <= 2 milliseconds
     100.00% <= 2 milliseconds
     34293.55 requests per second
+```

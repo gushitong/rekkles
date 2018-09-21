@@ -19,6 +19,45 @@ support. It meant to provide a key-value store alternative to redis.
 
 ## Benchmark
 
+This benchmark running on my local mac, aryadb has better performance on SSD.
+
+* redis benchmark:
+
+
+    $ redis-benchmark -p 6379 -t get,set -n 50000 -r 50000  -e
+    ====== SET ======
+      50000 requests completed in 0.90 seconds
+      50 parallel clients
+      3 bytes payload
+      keep alive: 1
+    
+    92.45% <= 1 milliseconds
+    99.14% <= 2 milliseconds
+    99.52% <= 3 milliseconds
+    99.85% <= 4 milliseconds
+    99.86% <= 5 milliseconds
+    99.86% <= 6 milliseconds
+    99.90% <= 28 milliseconds
+    99.91% <= 29 milliseconds
+    100.00% <= 30 milliseconds
+    55309.73 requests per second
+    
+    ====== GET ======
+      50000 requests completed in 0.85 seconds
+      50 parallel clients
+      3 bytes payload
+      keep alive: 1
+    
+    98.82% <= 1 milliseconds
+    99.85% <= 2 milliseconds
+    99.98% <= 3 milliseconds
+    100.00% <= 3 milliseconds
+    59031.88 requests per second
+
+
+* aryadb benchmark:
+
+
     $ redis-benchmark -p 6380 -t get,set -n 50000 -r 50000  -e
     ====== SET ======
       50000 requests completed in 1.62 seconds

@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/gushitong/aryadb/db"
+	"github.com/gushitong/aryadb/arya"
 	"github.com/gushitong/aryadb/impl"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
 	"log"
 )
 
-type Handler func(db db.DB, conn Conn, cmd Request)
+type Handler func(db arya.DB, conn Conn, cmd Request)
 
 type server struct {
-	db       db.DB
+	db       arya.DB
 	Auth     string
 	Handlers map[string]Handler
 }
@@ -76,7 +76,7 @@ func NewAryaDB() *server {
 	}
 	server := &server{
 		db:       storage,
-		Auth:     "requirepass",
+		Auth:     "",
 		Handlers: make(map[string]Handler),
 	}
 	server.RegisterHandlers()

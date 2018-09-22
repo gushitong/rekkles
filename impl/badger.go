@@ -3,7 +3,7 @@ package impl
 import (
 	"github.com/dgraph-io/badger"
 	"time"
-	"github.com/gushitong/aryadb/db"
+	"github.com/gushitong/aryadb/arya"
 )
 
 
@@ -12,17 +12,17 @@ type badgerStorage struct{
 	DB *badger.DB
 }
 
-func (b badgerStorage)NewTransaction(update bool) db.Transaction {
+func (b badgerStorage)NewTransaction(update bool) arya.Transaction {
 	return &badgeTxn{b.DB.NewTransaction(update)}
 }
 
-func (b badgerStorage) Read(fn func(txn db.Transaction) error) error {
+func (b badgerStorage) Read(fn func(txn arya.Transaction) error) error {
 	txn := b.NewTransaction(false)
 	defer txn.Discard()
 	return fn(txn)
 }
 
-func (b badgerStorage) ReadWrite(fn func(txn db.Transaction) error) error {
+func (b badgerStorage) ReadWrite(fn func(txn arya.Transaction) error) error {
 	txn := b.NewTransaction(true)
 	defer txn.Discard()
 

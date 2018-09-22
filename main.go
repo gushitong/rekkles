@@ -19,12 +19,12 @@ func main() {
 		},
 		func(conn redcon.Conn) bool {
 			// use this function to accept or deny the connection.
-			// log.Printf("accept: %db", conn.RemoteAddr())
+			// log.Printf("accept: %arya", conn.RemoteAddr())
 			return true
 		},
 		func(conn redcon.Conn, err error) {
 			// this is called when the connection has been closed
-			// log.Printf("closed: %db, err: %v", conn.RemoteAddr(), err)
+			// log.Printf("closed: %arya, err: %v", conn.RemoteAddr(), err)
 		},
 	)
 	if err != nil {

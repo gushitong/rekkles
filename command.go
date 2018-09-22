@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/db"
+	"github.com/gushitong/aryadb/arya"
 )
 
-func Append(db db.DB, conn Conn, req Request) {
+func Append(db arya.DB, conn Conn, req Request) {
 	var n int
-	err := db.ReadWrite(func(txn db.Transaction) error {
+	err := db.ReadWrite(func(txn arya.Transaction) error {
 		val, err := txn.Get(req.Args[1])
 		if err != nil {
 			return err
@@ -26,14 +26,14 @@ func Append(db db.DB, conn Conn, req Request) {
 	conn.WriteInt(n)
 }
 
-func ping(db db.DB, conn Conn, req Request) {
+func ping(db arya.DB, conn Conn, req Request) {
 	conn.WriteString("PONG")
 }
 
-func get(db db.DB, conn Conn, req Request) {
+func get(db arya.DB, conn Conn, req Request) {
 	var v []byte
 
-	err := db.Read(func(txn db.Transaction) error {
+	err := db.Read(func(txn arya.Transaction) error {
 		val, err := txn.Get(req.Args[1])
 		if err != nil {
 			return err
@@ -49,8 +49,8 @@ func get(db db.DB, conn Conn, req Request) {
 	conn.WriteBulk(v)
 }
 
-func set(db db.DB, conn Conn, req Request) {
-	err := db.ReadWrite(func(txn db.Transaction) error {
+func set(db arya.DB, conn Conn, req Request) {
+	err := db.ReadWrite(func(txn arya.Transaction) error {
 		if err := txn.Set(req.Args[1], req.Args[2]); err != nil {
 			return err
 		}

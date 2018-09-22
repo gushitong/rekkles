@@ -1,4 +1,4 @@
-package engine
+package db
 
 import "time"
 
@@ -7,9 +7,9 @@ type DB interface {
 
 	NewTransaction(update bool) Transaction
 
-	View(fn func(txn Transaction) error) error
+	Read(fn func(txn Transaction) error) error
 
-	Update(fn func(txn Transaction) error) error
+	ReadWrite(fn func(txn Transaction) error) error
 }
 
 

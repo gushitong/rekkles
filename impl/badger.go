@@ -3,7 +3,7 @@ package impl
 import (
 	"github.com/dgraph-io/badger"
 	"time"
-	"github.com/gushitong/aryadb/engine"
+	"github.com/gushitong/aryadb/db"
 )
 
 
@@ -12,17 +12,17 @@ type badgerStorage struct{
 	DB *badger.DB
 }
 
-func (b badgerStorage)NewTransaction(update bool) engine.Transaction {
+func (b badgerStorage)NewTransaction(update bool) db.Transaction {
 	return &badgeTxn{b.DB.NewTransaction(update)}
 }
 
-func (b badgerStorage)View(fn func(txn engine.Transaction) error) error {
+func (b badgerStorage) Read(fn func(txn db.Transaction) error) error {
 	txn := b.NewTransaction(false)
 	defer txn.Discard()
 	return fn(txn)
 }
 
-func (b badgerStorage)Update(fn func(txn engine.Transaction) error) error {
+func (b badgerStorage) ReadWrite(fn func(txn db.Transaction) error) error {
 	txn := b.NewTransaction(true)
 	defer txn.Discard()
 
@@ -39,7 +39,11 @@ type badgeTxn struct {
 func (t badgeTxn) Get(key []byte) ([]byte, error) {
 	item, err := t.Txn.Get(key)
 	if err != nil {
-		return nil, err
+		if err == badger.ErrKeyNotFound {
+			return nil, nil
+		}else {
+			return nil, err
+		}
 	}
 	return item.Value()
 }

@@ -1,56 +1,62 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/engine"
+	"github.com/gushitong/aryadb/db"
 )
 
+func Append(db db.DB, conn Conn, req Request) {
+	var n int
+	err := db.ReadWrite(func(txn db.Transaction) error {
+		val, err := txn.Get(req.Args[1])
+		if err != nil {
+			return err
+		}
+		val = append(val, req.Args[2]...)
+		n = len(val)
+		if err := txn.Set(req.Args[1], val); err != nil {
+			return err
+		}
+		return nil
+	})
 
-func Append(db engine.DB, conn Conn, req Request) {
-	txn := db.NewTransaction(true)
-	defer txn.Discard()
-
-	val, err := txn.Get(req.Args[1])
-	val = append(val, req.Args[2]...)
-	err = txn.Set(req.Args[1], val)
-	err = txn.Commit(nil)
 	if err != nil {
 		conn.WriteRawError(err)
 		return
 	}
-
-	conn.WriteInt(len(val))
+	conn.WriteInt(n)
 }
 
-
-func ping(db engine.DB, conn Conn, req Request) {
+func ping(db db.DB, conn Conn, req Request) {
 	conn.WriteString("PONG")
 }
 
+func get(db db.DB, conn Conn, req Request) {
+	var v []byte
 
-func get(db engine.DB, conn Conn, req Request) {
-	txn := db.NewTransaction(false)
-	defer txn.Discard()
+	err := db.Read(func(txn db.Transaction) error {
+		val, err := txn.Get(req.Args[1])
+		if err != nil {
+			return err
+		}
+		v = val
+		return nil
+	})
 
-	val, err := txn.Get(req.Args[1])
-	if err != nil {
-		conn.WriteRawError(err)
-	}else {
-		conn.WriteBulk(val)
-	}
-}
-
-
-func set(db engine.DB, conn Conn, req Request) {
-	txn := db.NewTransaction(true)
-	defer txn.Discard()
-
-	err := txn.Set(req.Args[1], req.Args[2])
 	if err != nil {
 		conn.WriteRawError(err)
 		return
 	}
+	conn.WriteBulk(v)
+}
 
-	err = txn.Commit(nil)
+func set(db db.DB, conn Conn, req Request) {
+	err := db.ReadWrite(func(txn db.Transaction) error {
+		if err := txn.Set(req.Args[1], req.Args[2]); err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		conn.WriteRawError(err)
 		return

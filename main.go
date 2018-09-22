@@ -8,7 +8,6 @@ import (
 
 var addr = ":6380"
 
-
 func main() {
 
 	db := NewAryaDB()
@@ -20,12 +19,12 @@ func main() {
 		},
 		func(conn redcon.Conn) bool {
 			// use this function to accept or deny the connection.
-			// log.Printf("accept: %engine", conn.RemoteAddr())
+			// log.Printf("accept: %db", conn.RemoteAddr())
 			return true
 		},
 		func(conn redcon.Conn, err error) {
 			// this is called when the connection has been closed
-			// log.Printf("closed: %engine, err: %v", conn.RemoteAddr(), err)
+			// log.Printf("closed: %db, err: %v", conn.RemoteAddr(), err)
 		},
 	)
 	if err != nil {

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"testing"
 	"github.com/go-redis/redis"
 	"github.com/tidwall/redcon"
+	"testing"
 )
 
 func init() {

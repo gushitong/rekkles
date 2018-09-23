@@ -10,7 +10,7 @@ var addr = ":6380"
 
 func main() {
 
-	db := NewAryaDB()
+	db := NewAryadbServer()
 	go log.Printf("started server at %s", addr)
 
 	err := redcon.ListenAndServe(addr,
@@ -19,12 +19,12 @@ func main() {
 		},
 		func(conn redcon.Conn) bool {
 			// use this function to accept or deny the connection.
-			// log.Printf("accept: %arya", conn.RemoteAddr())
+			// log.Printf("accept: %io", conn.RemoteAddr())
 			return true
 		},
 		func(conn redcon.Conn, err error) {
 			// this is called when the connection has been closed
-			// log.Printf("closed: %arya, err: %v", conn.RemoteAddr(), err)
+			// log.Printf("closed: %io, err: %v", conn.RemoteAddr(), err)
 		},
 	)
 	if err != nil {

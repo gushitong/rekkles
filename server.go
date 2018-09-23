@@ -2,17 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/gushitong/aryadb/arya"
 	"github.com/gushitong/aryadb/impl"
+	"github.com/gushitong/aryadb/io"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
-	"log"
 )
 
-type Handler func(db arya.DB, conn Conn, cmd Request)
+type Handler func(db io.DB, conn Conn, cmd Request)
 
 type server struct {
-	db       arya.DB
+	db       io.DB
 	Auth     string
 	Handlers map[string]Handler
 }
@@ -33,8 +32,6 @@ func (s *server) Authenticate(conn Conn, auth string) error {
 func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 	conn := Conn{redConn}
 	req := Request{redCmd.Raw, redCmd.Args}
-
-	log.Printf("requirepass: %v. authenticated: %v\n", s.RequirePass(), conn.Authenticated())
 
 	if LowerString(req.Args[0]) == "auth" {
 		if conn.Context() == nil {
@@ -63,13 +60,16 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 }
 
 func (s *server) RegisterHandlers() {
-	RegisterHandler(s, "append", Append)
+	RegisterHandler(s, "append", _append)
+	RegisterHandler(s, "bitcount", bitcount)
+	RegisterHandler(s, "decr", decr)
+	RegisterHandler(s, "decrby", decrby)
 	RegisterHandler(s, "get", get)
 	RegisterHandler(s, "set", set)
 	RegisterHandler(s, "ping", ping)
 }
 
-func NewAryaDB() *server {
+func NewAryadbServer() *server {
 	storage, err := impl.NewBadgerStorage("/tmp/impl", "/tmp/impl")
 	if err != nil {
 		panic(err)

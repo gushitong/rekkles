@@ -1,6 +1,8 @@
 package main
 
-import "strings"
+import (
+	"strings"
+)
 
 func LowerString(s []byte) string {
 	return strings.ToLower(string(s))

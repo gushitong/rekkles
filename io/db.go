@@ -1,4 +1,4 @@
-package arya
+package io
 
 import "time"
 
@@ -7,13 +7,15 @@ type DB interface {
 
 	NewTransaction(update bool) Transaction
 
-	Read(fn func(txn Transaction) error) error
+	View(fn func(txn Transaction) error) error
 
-	ReadWrite(fn func(txn Transaction) error) error
+	Update(fn func(txn Transaction) error) error
 }
 
 
 type Transaction interface {
+
+	IncrBy(key []byte, v int64) (int64, error)
 
 	Get(key []byte) ([]byte, error)
 

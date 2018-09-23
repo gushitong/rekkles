@@ -12,10 +12,7 @@ support. It meant to provide a key-value store alternative to redis.
     
 ## Redis Command Support
 
-|Command   	|   Support	|  Notes 	|
-|---	|---	|---	|
-| GET  	| :white_check_mark: |   	|
-| SET  	| :white_check_mark: |   	|
+    append bitcount decr decrby get set ping
 
 ## Benchmark
 

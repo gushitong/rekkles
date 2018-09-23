@@ -3,7 +3,8 @@ package impl
 import (
 	"github.com/dgraph-io/badger"
 	"time"
-	"github.com/gushitong/aryadb/arya"
+	"github.com/gushitong/aryadb/io"
+	"strconv"
 )
 
 
@@ -12,17 +13,17 @@ type badgerStorage struct{
 	DB *badger.DB
 }
 
-func (b badgerStorage)NewTransaction(update bool) arya.Transaction {
+func (b badgerStorage)NewTransaction(update bool) io.Transaction {
 	return &badgeTxn{b.DB.NewTransaction(update)}
 }
 
-func (b badgerStorage) Read(fn func(txn arya.Transaction) error) error {
+func (b badgerStorage) View(fn func(txn io.Transaction) error) error {
 	txn := b.NewTransaction(false)
 	defer txn.Discard()
 	return fn(txn)
 }
 
-func (b badgerStorage) ReadWrite(fn func(txn arya.Transaction) error) error {
+func (b badgerStorage) Update(fn func(txn io.Transaction) error) error {
 	txn := b.NewTransaction(true)
 	defer txn.Discard()
 
@@ -34,6 +35,25 @@ func (b badgerStorage) ReadWrite(fn func(txn arya.Transaction) error) error {
 
 type badgeTxn struct {
 	Txn *badger.Txn
+}
+
+func (t badgeTxn) IncrBy(key []byte, v int64)(int64, error) {
+	val, err := t.Get(key)
+	if err != nil {
+		return 0, err
+	}
+
+	var num int64
+	if val == nil {
+		num = 0
+	}else {
+		num, err = strconv.ParseInt(string(val), 10, 64)
+		if err != nil {
+			return 0, err
+		}
+	}
+	num += v
+	return num, t.Set(key, []byte(strconv.FormatInt(num, 10)))
 }
 
 func (t badgeTxn) Get(key []byte) ([]byte, error) {
@@ -55,7 +75,6 @@ func (t badgeTxn) Set(key, val []byte) error {
 func(t badgeTxn) SetWithTTL(key, val []byte, ttl time.Duration) error {
 	return t.Txn.SetWithTTL(key, val, ttl)
 }
-
 
 func(t badgeTxn) Commit(fn func(error)) error {
 	return t.Txn.Commit(fn)

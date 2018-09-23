@@ -12,7 +12,9 @@ support. It meant to provide a key-value store alternative to redis.
     
 ## Redis Command Support
 
-    append auth bitcount decr decrby get getbit set ping
+* String:
+
+    append decr decrby get getbit getrange getset incr incrby mget mset msetnx set setbit setex setnx setrange strlen
 
 ## Benchmark
 

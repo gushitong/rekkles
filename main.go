@@ -10,12 +10,12 @@ var addr = ":6380"
 
 func main() {
 
-	db := NewAryadbServer()
+	server := NewAryadbServer()
 	go log.Printf("started server at %s", addr)
 
 	err := redcon.ListenAndServe(addr,
 		func(conn redcon.Conn, cmd redcon.Command) {
-			db.Handle(conn, cmd)
+			server.Handle(conn, cmd)
 		},
 		func(conn redcon.Conn) bool {
 			// use this function to accept or deny the connection.

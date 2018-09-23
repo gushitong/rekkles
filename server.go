@@ -60,14 +60,28 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 }
 
 func (s *server) RegisterHandlers() {
+
+	// String command.
 	RegisterHandler(s, "append", _append)
 	RegisterHandler(s, "bitcount", bitcount)
 	RegisterHandler(s, "decr", decr)
 	RegisterHandler(s, "decrby", decrby)
 	RegisterHandler(s, "get", get)
 	RegisterHandler(s, "getbit", getbit)
+	RegisterHandler(s, "getrange", getrange)
+	RegisterHandler(s, "getset", getset)
+	RegisterHandler(s, "incr", incr)
+	RegisterHandler(s, "incrby", incrby)
+	RegisterHandler(s, "incrfloat", incrfloat)
+	RegisterHandler(s, "mget", mget)
+	RegisterHandler(s, "mset", mset)
+	RegisterHandler(s, "msetnx", msetnx)
 	RegisterHandler(s, "set", set)
-	//RegisterHandler(s, "ping", ping)
+	RegisterHandler(s, "setbit", setbit)
+	RegisterHandler(s, "setex", setex)
+	RegisterHandler(s, "setnx", setnx)
+	RegisterHandler(s, "setrange", setrange)
+	RegisterHandler(s, "strlen", strlen)
 }
 
 func NewAryadbServer() *server {

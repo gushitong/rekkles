@@ -113,3 +113,64 @@ func TestCmdGetbit(t *testing.T) {
 		t.Fatal("Getbit result mismatch.")
 	}
 }
+
+func TestCmdGetrange(t *testing.T) {
+	key := "k_getrange"
+	val := "abcdefg"
+
+	client.Set(key, val, 0)
+	s, err := client.GetRange(key, 1, 3).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "bcd" {
+		t.Fatal("Getrange result mismatch.")
+	}
+
+	s, err = client.GetRange(key, 0, -1).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "abcdefg" {
+		t.Fatal("Getrange result mismatch.")
+	}
+
+	s, err = client.GetRange(key, -7, -1).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "abcdefg" {
+		t.Fatal("Getrange result mismatch.")
+	}
+
+	s, err = client.GetRange(key, -1, 100).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "g" {
+		t.Fatal("Getrange result mismatch.")
+	}
+}
+
+func TestCmdGetset(t *testing.T) {
+	key := "k_getset"
+	val := "v_getset"
+
+	client.Set(key, "", 0)
+
+	s, err := client.GetSet(key, val).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "" {
+		t.Fatal("Getset result mismatch")
+	}
+
+	s, err = client.GetSet(key, val).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != val {
+		t.Fatal("Getset result mismatch")
+	}
+}

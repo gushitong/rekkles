@@ -65,8 +65,9 @@ func (s *server) RegisterHandlers() {
 	RegisterHandler(s, "decr", decr)
 	RegisterHandler(s, "decrby", decrby)
 	RegisterHandler(s, "get", get)
+	RegisterHandler(s, "getbit", getbit)
 	RegisterHandler(s, "set", set)
-	RegisterHandler(s, "ping", ping)
+	//RegisterHandler(s, "ping", ping)
 }
 
 func NewAryadbServer() *server {

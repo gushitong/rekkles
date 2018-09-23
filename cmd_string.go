@@ -93,10 +93,6 @@ func decrby(db io.DB, conn Conn, req Request) {
 	conn.WriteInt64(v)
 }
 
-func ping(db io.DB, conn Conn, req Request) {
-	conn.WriteString("PONG")
-}
-
 func get(db io.DB, conn Conn, req Request) {
 	var v []byte
 
@@ -116,6 +112,32 @@ func get(db io.DB, conn Conn, req Request) {
 	conn.WriteBulk(v)
 }
 
+func getbit(db io.DB, conn Conn, req Request) {
+	var v int
+	err := db.View(func(txn io.Transaction) error {
+		val, err := txn.Get(req.Args[1])
+		if err != nil {
+			return err
+		}
+		i, err := strconv.Atoi(string(req.Args[2]))
+		if err != nil {
+			return err
+		}
+		if val == nil || len(val)*8 < i {
+			v = 0
+			return nil
+		}
+		v =  int(val[i/8] >> uint(i%8)) & 1
+		return nil
+	})
+
+	if err != nil {
+		conn.WriteRawError(err)
+		return
+	}
+	conn.WriteInt(v)
+}
+
 func set(db io.DB, conn Conn, req Request) {
 	err := db.Update(func(txn io.Transaction) error {
 		if err := txn.Set(req.Args[1], req.Args[2]); err != nil {
@@ -130,3 +152,4 @@ func set(db io.DB, conn Conn, req Request) {
 	}
 	conn.WriteString("OK")
 }
+

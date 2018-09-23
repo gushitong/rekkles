@@ -91,3 +91,25 @@ func TestCmdDecrBy(t *testing.T)  {
 		t.Fatal("Decrby result mismatch.")
 	}
 }
+
+func TestCmdGetbit(t *testing.T) {
+	key := "k_getbit"
+	val := "g"
+
+	client.Set(key, val, 0)
+	v, err := client.GetBit(key, 2).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v != 1 {
+		t.Fatal("Getbit result mismatch.")
+	}
+
+	v, err = client.GetBit(key, 3).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v != 0 {
+		t.Fatal("Getbit result mismatch.")
+	}
+}

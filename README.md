@@ -12,9 +12,11 @@ support. It meant to provide a key-value store alternative to redis.
     
 ## Redis Command Support
 
-* String:
+* String Command
 
-    append decr decrby get getbit getrange getset incr incrby mget mset msetnx set setbit setex setnx setrange strlen
+```bash
+append decr decrby get getbit getrange getset incr incrby mget mset msetnx set setbit setex setnx setrange strlen
+```
 
 ## Benchmark
 

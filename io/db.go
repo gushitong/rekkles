@@ -2,6 +2,19 @@ package io
 
 import "time"
 
+type IteratorOptions struct {
+	PrefetchValues   bool
+	PrefetchSize     int
+	Reverse          bool
+	AllVersions      bool
+}
+
+var DefaultIteratorOptions = IteratorOptions{
+	PrefetchValues: true,
+	PrefetchSize: 100,
+	Reverse: false,
+	AllVersions: false,
+}
 
 type DB interface {
 
@@ -12,10 +25,7 @@ type DB interface {
 	Update(fn func(txn Transaction) error) error
 }
 
-
 type Transaction interface {
-
-	IncrBy(key []byte, v int64) (int64, error)
 
 	Get(key []byte) ([]byte, error)
 
@@ -23,8 +33,39 @@ type Transaction interface {
 
 	SetWithTTL(key, value []byte, ttl time.Duration) error
 
+	Del(key []byte) error
+
+	IncrBy(key []byte, v int64) (int64, error)
+
+	IncrByFloat(key []byte, v float64) (float64, error)
+
+	NewIterator(ops IteratorOptions) Iterator
+
 	Commit(callback func(error)) error
 
 	Discard()
 }
 
+type Iterator interface {
+
+	GetItem() Item
+
+	Rewind()
+
+	Seek(key []byte)
+
+	Valid() bool
+
+	ValidForPrefix(prefix []byte) bool
+
+	Next()
+
+	Close()
+}
+
+type Item interface {
+
+	Key() []byte
+
+	Value() ([]byte, error)
+}

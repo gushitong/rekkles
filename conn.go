@@ -10,27 +10,22 @@ type Context struct {
 	ConnectionID  int64
 }
 
-type Conn struct {
+type aryConnection struct {
 	redcon.Conn
 }
 
-func (c Conn) Authenticated() bool {
+func (c aryConnection) Authenticated() bool {
 	return c.Context() != nil && c.Context().(*Context).Authenticated
 }
 
-func (c Conn) WriteErr(err error) {
-	c.WriteError(fmt.Sprintf("ERR %s", err))
+func (c aryConnection) WriteErr(err error) {
+	c.WriteError(fmt.Sprint(err))
 }
 
-func (c Conn) WriteBool(v bool)  {
+func (c aryConnection) WriteBool(v bool)  {
 	if v {
 		c.WriteInt(1)
 	} else {
 		c.WriteInt(0)
 	}
-}
-
-type Request struct {
-	Raw  []byte
-	Args [][]byte
 }

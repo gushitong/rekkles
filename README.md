@@ -18,6 +18,12 @@ support. It meant to provide a key-value store alternative to redis.
 append decr decrby get getbit getrange getset incr incrby mget mset msetnx set setbit setex setnx setrange strlen
 ```
 
+* Hash Command
+
+```bash
+hdel hexists hget hgetall hincrby hincrbyfloat hkeys hlen hmget hmset hscan hset hsetnx hstrlen hvals
+```
+
 ## Benchmark
 
 This benchmark running on my local mac, aryadb has better performance on SSD.

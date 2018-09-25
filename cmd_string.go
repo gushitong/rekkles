@@ -7,21 +7,21 @@ import (
 	"time"
 )
 
-func _append(db io.DB, conn Conn, req Request) {
+func _append(db io.DB, conn aryConnection, cmd aryCommand) {
 	var n int
 	err := db.Update(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
-		val = append(val, req.Args[2]...)
+
+		val = append(val, cmd.Args[1]...)
 		n = len(val)
-		if err := txn.Set(req.Args[1], val); err != nil {
+		if err := txn.Set(cmd.StringKey(), val); err != nil {
 			return err
 		}
 		return nil
 	})
-
 	if err != nil {
 		conn.WriteErr(err)
 		return
@@ -29,10 +29,10 @@ func _append(db io.DB, conn Conn, req Request) {
 	conn.WriteInt(n)
 }
 
-func bitcount(db io.DB, conn Conn, req Request) {
+func bitcount(db io.DB, conn aryConnection, cmd aryCommand) {
 	var n int
 	err := db.View(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
@@ -55,10 +55,10 @@ func bitcount(db io.DB, conn Conn, req Request) {
 	conn.WriteInt(n)
 }
 
-func decr(db io.DB, conn Conn, req Request) {
+func decr(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
 	err := db.Update(func(txn io.Transaction) error {
-		n, err := txn.IncrBy(req.Args[1], -1)
+		n, err := txn.IncrBy(cmd.StringKey(), -1)
 		if err != nil {
 			return err
 		}
@@ -73,14 +73,14 @@ func decr(db io.DB, conn Conn, req Request) {
 	conn.WriteInt64(v)
 }
 
-func decrby(db io.DB, conn Conn, req Request) {
+func decrby(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
 	err := db.Update(func(txn io.Transaction) error {
-		num, err := strconv.ParseInt(string(req.Args[2]), 10, 64)
+		num, err := strconv.ParseInt(string(cmd.Args[1]), 10, 64)
 		if err != nil {
 			return err
 		}
-		n, err := txn.IncrBy(req.Args[1], -1*num)
+		n, err := txn.IncrBy(cmd.StringKey(), -1*num)
 		if err != nil {
 			return err
 		}
@@ -94,11 +94,10 @@ func decrby(db io.DB, conn Conn, req Request) {
 	conn.WriteInt64(v)
 }
 
-func get(db io.DB, conn Conn, req Request) {
+func get(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v []byte
-
 	err := db.View(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
@@ -113,14 +112,14 @@ func get(db io.DB, conn Conn, req Request) {
 	conn.WriteBulk(v)
 }
 
-func getbit(db io.DB, conn Conn, req Request) {
+func getbit(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v int
 	err := db.View(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
-		i, err := strconv.Atoi(string(req.Args[2]))
+		i, err := strconv.Atoi(string(cmd.Args[1]))
 		if err != nil {
 			return err
 		}
@@ -139,25 +138,25 @@ func getbit(db io.DB, conn Conn, req Request) {
 	conn.WriteInt(v)
 }
 
-func getrange(db io.DB, conn Conn, req Request) {
+func getrange(db io.DB, conn aryConnection, cmd aryCommand) {
 	var s string
 
 	err := db.View(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
-		start, err := strconv.Atoi(string(req.Args[2]))
+		start, err := strconv.Atoi(string(cmd.Args[1]))
 		if err != nil {
 			return err
 		}
-		end, err := strconv.Atoi(string(req.Args[3]))
+		end, err := strconv.Atoi(string(cmd.Args[2]))
 		if err != nil {
 			return err
 		}
 
-		o1 := SliceIndex(len(val), start)
-		o2 := SliceIndex(len(val), end)
+		o1 := io.SliceIndex(len(val), start)
+		o2 := io.SliceIndex(len(val), end)
 		if o2 == len(val) - 1 {
 			s = string(val[o1:])
 		}else {
@@ -173,15 +172,15 @@ func getrange(db io.DB, conn Conn, req Request) {
 	conn.WriteString(s)
 }
 
-func getset(db io.DB, conn Conn, req Request) {
+func getset(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v string
 	err := db.Update(func(txn io.Transaction) error {
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
 		v = string(val)
-		return txn.Set(req.Args[1], req.Args[2])
+		return txn.Set(cmd.StringKey(), cmd.Args[1])
 	})
 	if err != nil {
 		conn.WriteErr(err)
@@ -190,10 +189,10 @@ func getset(db io.DB, conn Conn, req Request) {
 	conn.WriteString(v)
 }
 
-func incr(db io.DB, conn Conn, req Request) {
+func incr(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
 	err := db.Update(func(txn io.Transaction) error {
-		val, err := txn.IncrBy(req.Args[1], 1)
+		val, err := txn.IncrBy(cmd.StringKey(), 1)
 		if err != nil {
 			return err
 		}
@@ -208,14 +207,14 @@ func incr(db io.DB, conn Conn, req Request) {
 	conn.WriteInt64(v)
 }
 
-func incrby(db io.DB, conn Conn, req Request) {
+func incrby(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
 	err := db.Update(func(txn io.Transaction) error {
-		n, err := strconv.ParseInt(string(req.Args[2]), 10, 64)
+		n, err := strconv.ParseInt(string(cmd.Args[1]), 10, 64)
 		if err != nil {
 			return err
 		}
-		val, err := txn.IncrBy(req.Args[1], n)
+		val, err := txn.IncrBy(cmd.StringKey(), n)
 		if err != nil {
 			return err
 		}
@@ -230,14 +229,14 @@ func incrby(db io.DB, conn Conn, req Request) {
 	conn.WriteInt64(v)
 }
 
-func incrfloat(db io.DB, conn Conn, req Request) {
+func incrfloat(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v float64
 	err := db.Update(func(txn io.Transaction) error {
-		n1, err := strconv.ParseFloat(string(req.Args[2]), 64)
+		n1, err := strconv.ParseFloat(string(cmd.Args[1]), 64)
 		if err != nil {
 			return err
 		}
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
@@ -246,7 +245,7 @@ func incrfloat(db io.DB, conn Conn, req Request) {
 			return err
 		}
 		v = n1 + n2
-		return txn.Set(req.Args[1], []byte(strconv.FormatFloat(v, 'f', -1, 64)))
+		return txn.Set(cmd.Args[1], []byte(strconv.FormatFloat(v, 'f', -1, 64)))
 	})
 
 	if err != nil {
@@ -256,11 +255,11 @@ func incrfloat(db io.DB, conn Conn, req Request) {
 	conn.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
 }
 
-func mget(db io.DB, conn Conn, req Request) {
+func mget(db io.DB, conn aryConnection, cmd aryCommand) {
 	v := make([][]byte, 0)
 	db.View(func(txn io.Transaction) error {
-		for _, key := range req.Args[1:] {
-			if val, err := txn.Get(key); err != nil {
+		for _, key := range cmd.Args {
+			if val, err := txn.Get(EStringKey(key)); err != nil {
 				v = append(v, nil)
 			} else {
 				v = append(v, val)
@@ -274,13 +273,13 @@ func mget(db io.DB, conn Conn, req Request) {
 	}
 }
 
-func mset(db io.DB, conn Conn, req Request) {
+func mset(db io.DB, conn aryConnection, cmd aryCommand) {
 	err := db.Update(func(txn io.Transaction) error {
-		if len(req.Args) % 2 != 1 {
+		if len(cmd.Args) % 2 != 1 {
 			return ErrWrongNumOfArguments
 		}
-		for i:=1; i<len(req.Args); i++ {
-			if err := txn.Set(req.Args[i], req.Args[i+1]); err != nil {
+		for i:=1; i<len(cmd.Args); i++ {
+			if err := txn.Set(EStringKey(cmd.Args[i]), cmd.Args[i+1]); err != nil {
 				return err
 			}
 		}
@@ -293,20 +292,20 @@ func mset(db io.DB, conn Conn, req Request) {
 	conn.WriteString("OK")
 }
 
-func msetnx(db io.DB, conn Conn, req Request) {
+func msetnx(db io.DB, conn aryConnection, cmd aryCommand) {
 	err := db.Update(func(txn io.Transaction) error {
-		if len(req.Args) % 2 != 1 {
+		if len(cmd.Args) % 2 != 1 {
 			return ErrWrongNumOfArguments
 		}
-		for i:=1; i<len(req.Args); i+=2 {
-			if val, err := txn.Get(req.Args[i]); err != nil {
+		for i:=1; i<len(cmd.Args); i+=2 {
+			if val, err := txn.Get(EStringKey(cmd.Args[i])); err != nil {
 				return err
 			} else if val != nil {
 				return ErrKeyExists
 			}
 		}
-		for i:=1; i<len(req.Args); i++ {
-			if err := txn.Set(req.Args[i], req.Args[i+1]); err != nil {
+		for i:=1; i<len(cmd.Args); i++ {
+			if err := txn.Set(EStringKey(cmd.Args[i]), cmd.Args[i+1]); err != nil {
 				return err
 			}
 		}
@@ -319,9 +318,9 @@ func msetnx(db io.DB, conn Conn, req Request) {
 	conn.WriteInt(1)
 }
 
-func set(db io.DB, conn Conn, req Request) {
+func set(db io.DB, conn aryConnection, cmd aryCommand) {
 	err := db.Update(func(txn io.Transaction) error {
-		return txn.Set(req.Args[1], req.Args[2])
+		return txn.Set(cmd.StringKey(), cmd.Args[1])
 	})
 
 	if err != nil {
@@ -331,30 +330,30 @@ func set(db io.DB, conn Conn, req Request) {
 	conn.WriteString("OK")
 }
 
-func setbit(db io.DB, conn Conn, req Request) {
+func setbit(db io.DB, conn aryConnection, cmd aryCommand) {
 	v := 0
 	err := db.Update(func(txn io.Transaction) error {
 		b := 0
-		if string(req.Args[3]) == "1" {
+		if string(cmd.Args[2]) == "1" {
 			b = 1
-		}else if string(req.Args[3]) != "0" {
+		}else if string(cmd.Args[2]) != "0" {
 			return ErrBitValue
 		}
 
-		pos, err := strconv.Atoi(string(req.Args[2]))
+		pos, err := strconv.Atoi(string(cmd.Args[1]))
 		if err != nil {
 			return ErrBitOffset
 		}
 
-		val, err := txn.Get(req.Args[1])
+		val, err := txn.Get(cmd.StringKey())
 		if pos + 1 > len(val)*8 {
 			return nil
 		}
 
 		if b == 0 {
-			val[pos/8] = ClearBit(val[pos/8], uint(pos%8))
+			val[pos/8] = io.ClearBit(val[pos/8], uint(pos%8))
 		}else {
-			val[pos/8] = SetBit(val[pos/8], uint(pos%8))
+			val[pos/8] = io.SetBit(val[pos/8], uint(pos%8))
 		}
 		v = 1
 		return nil
@@ -367,15 +366,13 @@ func setbit(db io.DB, conn Conn, req Request) {
 	conn.WriteInt(v)
 }
 
-func setex(db io.DB, conn Conn, req Request) {
-
+func setex(db io.DB, conn aryConnection, cmd aryCommand) {
 	err := db.Update(func(txn io.Transaction) error {
-		val, err := strconv.Atoi(string(req.Args[2]))
+		val, err := strconv.Atoi(string(cmd.Args[1]))
 		if err != nil {
 			return ErrIntegerValue
 		}
-
-		return txn.SetWithTTL(req.Args[1], req.Args[3], time.Duration(val)*time.Second)
+		return txn.SetWithTTL(cmd.StringKey(), cmd.Args[2], time.Duration(val)*time.Second)
 	})
 	if err != nil {
 		conn.WriteErr(err)
@@ -384,27 +381,27 @@ func setex(db io.DB, conn Conn, req Request) {
 	conn.WriteString("OK")
 }
 
-func setnx(db io.DB, conn Conn, req Request) {
+func setnx(db io.DB, conn aryConnection, cmd aryCommand) {
 	var v bool
 	db.Update(func(txn io.Transaction) error {
-		if val, _ := txn.Get(req.Args[1]); val != nil {
+		if val, _ := txn.Get(cmd.StringKey()); val != nil {
 			return nil
 		}else {
 			v = true
-			return txn.Set(req.Args[1], req.Args[2])
+			return txn.Set(cmd.StringKey(), cmd.Args[1])
 		}
 	})
 	conn.WriteBool(v)
 }
 
-func setrange(db io.DB, conn Conn, req Request) {
+func setrange(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteErr(ErrCommandNotSupported)
 }
 
-func strlen(db io.DB, conn Conn, req Request) {
+func strlen(db io.DB, conn aryConnection, cmd aryCommand) {
 	var n int
 	db.View(func(txn io.Transaction) error {
-		if val, _ := txn.Get(req.Args[1]); val == nil {
+		if val, _ := txn.Get(cmd.StringKey()); val == nil {
 			n = 0
 		}else {
 			n = len(val)

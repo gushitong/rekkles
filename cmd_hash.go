@@ -157,6 +157,7 @@ func hkeys(db io.DB, conn aryConnection, cmd aryCommand) {
 			return err
 		}
 		it := txn.NewIterator(io.DefaultIteratorOptions)
+		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
 			_, hash, err := DHashKey(item.Key())
@@ -186,6 +187,7 @@ func hlen(db io.DB, conn aryConnection, cmd aryCommand) {
 			return err
 		}
 		it := txn.NewIterator(io.DefaultIteratorOptions)
+		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
 			_, _, err := DHashKey(item.Key())
@@ -316,6 +318,7 @@ func hvals(db io.DB, conn aryConnection, cmd aryCommand) {
 			return err
 		}
 		it := txn.NewIterator(io.DefaultIteratorOptions)
+		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
 			val, _ := item.Value()

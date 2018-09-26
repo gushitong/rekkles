@@ -36,7 +36,19 @@ type badgerIterator struct {
 }
 
 func (i badgerIterator) GetItem() io.Item {
-	return i.Item()
+	return &badgerItem{i.Item()}
+}
+
+type badgerItem struct {
+	Item *badger.Item
+}
+
+func (i badgerItem) Key() []byte {
+	return i.Item.KeyCopy(nil)
+}
+
+func (i badgerItem) Value() ([]byte, error) {
+	return i.Item.ValueCopy(nil)
 }
 
 type badgeTxn struct {
@@ -89,7 +101,7 @@ func (t badgeTxn) Get(key []byte) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return item.Value()
+	return item.ValueCopy(nil)
 }
 
 func (t badgeTxn) Set(key, val []byte) error {

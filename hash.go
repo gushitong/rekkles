@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/io"
+	"github.com/gushitong/aryadb/stor"
+	"github.com/gushitong/aryadb/ut"
 )
 
-func hdel(db io.DB, conn aryConnection, cmd aryCommand) {
+func hdel(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var exists bool
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
@@ -27,9 +28,9 @@ func hdel(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBool(exists)
 }
 
-func hexists(db io.DB, conn aryConnection, cmd aryCommand) {
+func hexists(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var exists bool
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
@@ -47,9 +48,9 @@ func hexists(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBool(exists)
 }
 
-func hget(db io.DB, conn aryConnection, cmd aryCommand) {
+func hget(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v []byte
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
@@ -69,18 +70,19 @@ func hget(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBulk(v)
 }
 
-func hgetall(db io.DB, conn aryConnection, cmd aryCommand) {
+func hgetall(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := make([]string, 0)
-	err := db.View(func(txn io.Transaction) error {
-		prefix, err := EHashPrefix(cmd.Args[0])
-		if err != nil{
+	err := db.View(func(txn stor.Transaction) error {
+		prefix, err := cmd.HashPrefix()
+		if err != nil {
 			return err
 		}
-		it := txn.NewIterator(io.DefaultIteratorOptions)
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
+		encoder, err := NewHashEncoder(cmd.Args[0])
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
-			_, hash, err := DHashKey(item.Key())
+			hash, err := encoder.Decode(item.Key())
 			if err != nil {
 				return err
 			}
@@ -107,19 +109,19 @@ func hgetall(db io.DB, conn aryConnection, cmd aryCommand) {
 	}
 }
 
-func hincrby(db io.DB, conn aryConnection, cmd aryCommand) {
+func hincrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
-	err := db.Update(func(txn io.Transaction) error {
-		 key, err := cmd.HashKey()
-		 if err != nil {
-		 	return err
-		 }
-		 n1, err := io.ParseInt64(cmd.Args[2])
-		 if err != nil {
-		 	return err
-		 }
-		 v, err = txn.IncrBy(key, n1)
-		 return err
+	err := db.Update(func(txn stor.Transaction) error {
+		key, err := cmd.HashKey()
+		if err != nil {
+			return err
+		}
+		n1, err := ut.ParseInt64(cmd.Args[2])
+		if err != nil {
+			return err
+		}
+		v, err = txn.IncrBy(key, n1)
+		return err
 	})
 	if err != nil {
 		conn.WriteErr(err)
@@ -128,14 +130,14 @@ func hincrby(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func hincrbyfloat(db io.DB, conn aryConnection, cmd aryCommand) {
+func hincrbyfloat(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v float64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
 		}
-		n1, err := io.ParseFloat64(cmd.Args[2])
+		n1, err := ut.ParseFloat64(cmd.Args[2])
 		if err != nil {
 			return err
 		}
@@ -146,21 +148,19 @@ func hincrbyfloat(db io.DB, conn aryConnection, cmd aryCommand) {
 		conn.WriteErr(err)
 		return
 	}
-	conn.WriteBulk(io.Float642Byte(v))
+	conn.WriteBulk(ut.Float642Byte(v))
 }
 
-func hkeys(db io.DB, conn aryConnection, cmd aryCommand) {
+func hkeys(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := make([]string, 0)
-	err := db.View(func(txn io.Transaction) error {
-		prefix, err := EHashPrefix(cmd.Args[0])
-		if err != nil {
-			return err
-		}
-		it := txn.NewIterator(io.DefaultIteratorOptions)
+	err := db.View(func(txn stor.Transaction) error {
+		encoder, _ := NewHashEncoder(cmd.Args[0])
+		prefix := encoder.Prefix()
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
-			_, hash, err := DHashKey(item.Key())
+			hash, err := encoder.Decode(item.Key())
 			if err != nil {
 				return err
 			}
@@ -179,18 +179,16 @@ func hkeys(db io.DB, conn aryConnection, cmd aryCommand) {
 	}
 }
 
-func hlen(db io.DB, conn aryConnection, cmd aryCommand) {
+func hlen(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int
-	err := db.View(func(txn io.Transaction) error {
-		prefix, err := EHashPrefix(cmd.Args[0])
-		if err != nil {
-			return err
-		}
-		it := txn.NewIterator(io.DefaultIteratorOptions)
+	err := db.View(func(txn stor.Transaction) error {
+		encoder, _ := NewHashEncoder(cmd.Args[0])
+		prefix := encoder.Prefix()
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
-			_, _, err := DHashKey(item.Key())
+			_, err := encoder.Decode(item.Key())
 			if err != nil {
 				return err
 			}
@@ -206,23 +204,19 @@ func hlen(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(v)
 }
 
-func hmget(db io.DB, conn aryConnection, cmd aryCommand) {
+func hmget(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := make([][]byte, 0)
-	db.View(func(txn io.Transaction) error {
+	db.View(func(txn stor.Transaction) error {
 		if len(cmd.Args) < 1 {
 			return ErrWrongNumOfArguments
 		}
-
+		encoder, _ := NewHashEncoder(cmd.Args[0])
 		for _, k := range cmd.Args[1:] {
-			key, err := EHashKey(cmd.Args[0], k)
-			if err != nil {
-				v = append(v, nil)
-				continue
-			}
+			key := encoder.Encode(k)
 			val, err := txn.Get(key)
 			if err != nil {
 				v = append(v, nil)
-			}else {
+			} else {
 				v = append(v, val)
 			}
 		}
@@ -234,37 +228,37 @@ func hmget(db io.DB, conn aryConnection, cmd aryCommand) {
 	}
 }
 
-func hmset(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
-		if len(cmd.Args) < 3 || len(cmd.Args) % 2 != 1 {
+func hmset(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
+		if len(cmd.Args) < 3 || len(cmd.Args)%2 != 1 {
 			return ErrWrongNumOfArguments
 		}
-
-		for i:=1; i<len(cmd.Args); i+=2 {
-			key, err:= EHashKey(cmd.Args[0], cmd.Args[i])
-			if err!=nil{
-				return err
-			}
-			if err := txn.Set(key, cmd.Args[i+1]); err != nil{
+		encoder, err := NewHashEncoder(cmd.Args[0])
+		if err != nil {
+			return err
+		}
+		for i := 1; i < len(cmd.Args); i += 2 {
+			key := encoder.Encode(cmd.Args[i])
+			if err := txn.Set(key, cmd.Args[i+1]); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
 
-	if err!= nil{
+	if err != nil {
 		conn.WriteErr(err)
 		return
 	}
 	conn.WriteString("OK")
 }
 
-func hscan(db io.DB, conn aryConnection, cmd aryCommand) {
+func hscan(db stor.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteErr(ErrCommandNotSupported)
 }
 
-func hset(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
+func hset(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
@@ -273,14 +267,14 @@ func hset(db io.DB, conn aryConnection, cmd aryCommand) {
 	})
 	if err != nil {
 		conn.WriteBool(false)
-	}else {
+	} else {
 		conn.WriteBool(true)
 	}
 }
 
-func hsetnx(db io.DB, conn aryConnection, cmd aryCommand) {
+func hsetnx(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v bool
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		key, err := cmd.HashKey()
 		if err != nil {
 			return err
@@ -298,9 +292,9 @@ func hsetnx(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBool(v)
 }
 
-func hstrlen(db io.DB, conn aryConnection, cmd aryCommand) {
+func hstrlen(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int
-	db.View(func(txn io.Transaction) error {
+	db.View(func(txn stor.Transaction) error {
 		key, _ := cmd.HashKey()
 		if val, _ := txn.Get(key); val != nil {
 			v = len(val)
@@ -310,14 +304,11 @@ func hstrlen(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(v)
 }
 
-func hvals(db io.DB, conn aryConnection, cmd aryCommand) {
+func hvals(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := make([]string, 0)
-	err := db.View(func(txn io.Transaction) error {
-		prefix, err := EHashPrefix(cmd.Args[0])
-		if err != nil {
-			return err
-		}
-		it := txn.NewIterator(io.DefaultIteratorOptions)
+	err := db.View(func(txn stor.Transaction) error {
+		prefix, _ := cmd.HashPrefix()
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
@@ -332,8 +323,7 @@ func hvals(db io.DB, conn aryConnection, cmd aryCommand) {
 		return
 	}
 	conn.WriteArray(len(v))
-	for _,val := range v {
+	for _, val := range v {
 		conn.WriteString(val)
 	}
 }
-

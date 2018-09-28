@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/io"
+	"github.com/gushitong/aryadb/stor"
+	"github.com/gushitong/aryadb/ut"
 	"math/bits"
 	"strconv"
 	"time"
 )
 
-func _append(db io.DB, conn aryConnection, cmd aryCommand) {
+func _append(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var n int
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
@@ -29,9 +30,9 @@ func _append(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(n)
 }
 
-func bitcount(db io.DB, conn aryConnection, cmd aryCommand) {
+func bitcount(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var n int
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
@@ -55,9 +56,9 @@ func bitcount(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(n)
 }
 
-func decr(db io.DB, conn aryConnection, cmd aryCommand) {
+func decr(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		n, err := txn.IncrBy(cmd.StringKey(), -1)
 		if err != nil {
 			return err
@@ -73,9 +74,9 @@ func decr(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func decrby(db io.DB, conn aryConnection, cmd aryCommand) {
+func decrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		num, err := strconv.ParseInt(string(cmd.Args[1]), 10, 64)
 		if err != nil {
 			return err
@@ -94,9 +95,9 @@ func decrby(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func get(db io.DB, conn aryConnection, cmd aryCommand) {
+func get(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v []byte
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
@@ -112,9 +113,9 @@ func get(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBulk(v)
 }
 
-func getbit(db io.DB, conn aryConnection, cmd aryCommand) {
+func getbit(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
@@ -127,7 +128,7 @@ func getbit(db io.DB, conn aryConnection, cmd aryCommand) {
 			v = 0
 			return nil
 		}
-		v =  int(val[i/8] >> uint(i%8)) & 1
+		v = int(val[i/8]>>uint(i%8)) & 1
 		return nil
 	})
 
@@ -138,28 +139,28 @@ func getbit(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(v)
 }
 
-func getrange(db io.DB, conn aryConnection, cmd aryCommand) {
+func getrange(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var s string
 
-	err := db.View(func(txn io.Transaction) error {
+	err := db.View(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
 		}
-		start, err := strconv.Atoi(string(cmd.Args[1]))
+		start, err := ut.ParseInt64(cmd.Args[1])
 		if err != nil {
 			return err
 		}
-		end, err := strconv.Atoi(string(cmd.Args[2]))
+		end, err := ut.ParseInt64(cmd.Args[2])
 		if err != nil {
 			return err
 		}
-
-		o1 := io.SliceIndex(len(val), start)
-		o2 := io.SliceIndex(len(val), end)
-		if o2 == len(val) - 1 {
+		l := int64(len(val))
+		o1 := ut.FixBoundary(l, start)
+		o2 := ut.FixBoundary(l, end)
+		if o2 == l-1 {
 			s = string(val[o1:])
-		}else {
+		} else {
 			s = string(val[o1:o2]) + string(val[o2])
 		}
 		return nil
@@ -172,9 +173,9 @@ func getrange(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString(s)
 }
 
-func getset(db io.DB, conn aryConnection, cmd aryCommand) {
+func getset(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v string
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		val, err := txn.Get(cmd.StringKey())
 		if err != nil {
 			return err
@@ -189,9 +190,9 @@ func getset(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString(v)
 }
 
-func incr(db io.DB, conn aryConnection, cmd aryCommand) {
+func incr(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		val, err := txn.IncrBy(cmd.StringKey(), 1)
 		if err != nil {
 			return err
@@ -207,9 +208,9 @@ func incr(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func incrby(db io.DB, conn aryConnection, cmd aryCommand) {
+func incrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		n, err := strconv.ParseInt(string(cmd.Args[1]), 10, 64)
 		if err != nil {
 			return err
@@ -229,9 +230,9 @@ func incrby(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func incrfloat(db io.DB, conn aryConnection, cmd aryCommand) {
+func incrfloat(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v float64
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		n1, err := strconv.ParseFloat(string(cmd.Args[1]), 64)
 		if err != nil {
 			return err
@@ -255,11 +256,11 @@ func incrfloat(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
 }
 
-func mget(db io.DB, conn aryConnection, cmd aryCommand) {
+func mget(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := make([][]byte, 0)
-	db.View(func(txn io.Transaction) error {
+	db.View(func(txn stor.Transaction) error {
 		for _, key := range cmd.Args {
-			if val, err := txn.Get(EStringKey(key)); err != nil {
+			if val, err := txn.Get(NewStringEncoder(key).Encode()); err != nil {
 				v = append(v, nil)
 			} else {
 				v = append(v, val)
@@ -273,13 +274,13 @@ func mget(db io.DB, conn aryConnection, cmd aryCommand) {
 	}
 }
 
-func mset(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
-		if len(cmd.Args) % 2 != 1 {
+func mset(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
+		if len(cmd.Args)%2 != 1 {
 			return ErrWrongNumOfArguments
 		}
-		for i:=1; i<len(cmd.Args); i++ {
-			if err := txn.Set(EStringKey(cmd.Args[i]), cmd.Args[i+1]); err != nil {
+		for i := 1; i < len(cmd.Args); i++ {
+			if err := txn.Set(cmd.StringKey(), cmd.Args[i+1]); err != nil {
 				return err
 			}
 		}
@@ -292,20 +293,20 @@ func mset(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString("OK")
 }
 
-func msetnx(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
-		if len(cmd.Args) % 2 != 1 {
+func msetnx(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
+		if len(cmd.Args)%2 != 1 {
 			return ErrWrongNumOfArguments
 		}
-		for i:=1; i<len(cmd.Args); i+=2 {
-			if val, err := txn.Get(EStringKey(cmd.Args[i])); err != nil {
+		for i := 1; i < len(cmd.Args); i += 2 {
+			if val, err := txn.Get(cmd.StringKey()); err != nil {
 				return err
 			} else if val != nil {
 				return ErrKeyExists
 			}
 		}
-		for i:=1; i<len(cmd.Args); i++ {
-			if err := txn.Set(EStringKey(cmd.Args[i]), cmd.Args[i+1]); err != nil {
+		for i := 1; i < len(cmd.Args); i++ {
+			if err := txn.Set(cmd.StringKey(), cmd.Args[i+1]); err != nil {
 				return err
 			}
 		}
@@ -318,8 +319,8 @@ func msetnx(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(1)
 }
 
-func set(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
+func set(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
 		return txn.Set(cmd.StringKey(), cmd.Args[1])
 	})
 
@@ -330,13 +331,13 @@ func set(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString("OK")
 }
 
-func setbit(db io.DB, conn aryConnection, cmd aryCommand) {
+func setbit(db stor.DB, conn aryConnection, cmd aryCommand) {
 	v := 0
-	err := db.Update(func(txn io.Transaction) error {
+	err := db.Update(func(txn stor.Transaction) error {
 		b := 0
 		if string(cmd.Args[2]) == "1" {
 			b = 1
-		}else if string(cmd.Args[2]) != "0" {
+		} else if string(cmd.Args[2]) != "0" {
 			return ErrBitValue
 		}
 
@@ -346,14 +347,14 @@ func setbit(db io.DB, conn aryConnection, cmd aryCommand) {
 		}
 
 		val, err := txn.Get(cmd.StringKey())
-		if pos + 1 > len(val)*8 {
+		if pos+1 > len(val)*8 {
 			return nil
 		}
 
 		if b == 0 {
-			val[pos/8] = io.ClearBit(val[pos/8], uint(pos%8))
-		}else {
-			val[pos/8] = io.SetBit(val[pos/8], uint(pos%8))
+			val[pos/8] = ut.ClearBit(val[pos/8], uint(pos%8))
+		} else {
+			val[pos/8] = ut.SetBit(val[pos/8], uint(pos%8))
 		}
 		v = 1
 		return nil
@@ -366,8 +367,8 @@ func setbit(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt(v)
 }
 
-func setex(db io.DB, conn aryConnection, cmd aryCommand) {
-	err := db.Update(func(txn io.Transaction) error {
+func setex(db stor.DB, conn aryConnection, cmd aryCommand) {
+	err := db.Update(func(txn stor.Transaction) error {
 		val, err := strconv.Atoi(string(cmd.Args[1]))
 		if err != nil {
 			return ErrIntegerValue
@@ -381,12 +382,12 @@ func setex(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteString("OK")
 }
 
-func setnx(db io.DB, conn aryConnection, cmd aryCommand) {
+func setnx(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v bool
-	db.Update(func(txn io.Transaction) error {
+	db.Update(func(txn stor.Transaction) error {
 		if val, _ := txn.Get(cmd.StringKey()); val != nil {
 			return nil
-		}else {
+		} else {
 			v = true
 			return txn.Set(cmd.StringKey(), cmd.Args[1])
 		}
@@ -394,16 +395,16 @@ func setnx(db io.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteBool(v)
 }
 
-func setrange(db io.DB, conn aryConnection, cmd aryCommand) {
+func setrange(db stor.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteErr(ErrCommandNotSupported)
 }
 
-func strlen(db io.DB, conn aryConnection, cmd aryCommand) {
+func strlen(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var n int
-	db.View(func(txn io.Transaction) error {
+	db.View(func(txn stor.Transaction) error {
 		if val, _ := txn.Get(cmd.StringKey()); val == nil {
 			n = 0
-		}else {
+		} else {
 			n = len(val)
 		}
 		return nil

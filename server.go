@@ -1,22 +1,23 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/impl"
-	"github.com/gushitong/aryadb/io"
+	"github.com/gushitong/aryadb/engine"
+	"github.com/gushitong/aryadb/stor"
+	"github.com/gushitong/aryadb/ut"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
 )
 
-type Handler func(db io.DB, conn aryConnection, cmd *aryCommand)
+type Handler func(db stor.DB, conn aryConnection, cmd *aryCommand)
 
 type handler struct {
 	Name string
 	NArg int
-	Func func(io.DB, aryConnection, aryCommand)
+	Func func(stor.DB, aryConnection, aryCommand)
 }
 
 type server struct {
-	db       io.DB
+	db       stor.DB
 	Auth     string
 	Handlers map[string]*handler
 }
@@ -41,15 +42,15 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 		return
 	}
 
-	command := io.LowerString(redCmd.Args[0])
+	command := ut.LowerString(redCmd.Args[0])
 	aryConn := aryConnection{redConn}
-	aryCmd := aryCommand{Args: redCmd.Args[1:], Raw:redCmd.Raw}
+	aryCmd := aryCommand{Args: redCmd.Args[1:], Raw: redCmd.Raw}
 
-	if io.LowerString(aryCmd.Args[0]) == "auth" {
+	if ut.LowerString(aryCmd.Args[0]) == "auth" {
 		if aryConn.Context() == nil {
 			aryConn.SetContext(&Context{})
 		}
-		if err := s.Authenticate(aryConn, io.LowerString(aryCmd.Args[1])); err != nil {
+		if err := s.Authenticate(aryConn, ut.LowerString(aryCmd.Args[1])); err != nil {
 			aryConn.SetContext(&Context{})
 			aryConn.WriteError("ERR auth failed")
 			return
@@ -73,7 +74,7 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 	f(s.db, aryConn, aryCmd)
 }
 
-func (s *server) Register(cmd string, f func(io.DB, aryConnection, aryCommand), narg int) {
+func (s *server) Register(cmd string, f func(stor.DB, aryConnection, aryCommand), narg int) {
 	handler := &handler{
 		Name: cmd, NArg: narg, Func: f,
 	}
@@ -120,9 +121,42 @@ func (s *server) RegisterAll() {
 	s.Register("hsetnx", hsetnx, 3)
 	s.Register("hstrlen", hstrlen, 2)
 	s.Register("hvals", hvals, 1)
+
+	//list
+	s.Register("lindex", lindex, 2)
+	s.Register("llen", llen, 1)
+	s.Register("lpop", lpop, 1)
+	s.Register("lpush", lpush, 2)
+	s.Register("lpushx", lpushx, 2)
+	s.Register("lrange", lrange, 3)
+	s.Register("lset", lset, 3)
+
+	// set
+	s.Register("sadd", sadd, -1)
+	s.Register("scard", scard, 1)
+	s.Register("sismember", sismember, 2)
+	s.Register("smembers", smembers, 1)
+
+	//zset
+	s.Register("zadd", zadd, 3)
+	s.Register("zcard", zcard, 1)
+	s.Register("zcount", zcount, 3)
+	s.Register("zincrby", zincrby, 3)
+	s.Register("zpopmax", zpopmax, 1)
+	s.Register("zpopmin", zpopmin, 1)
+	s.Register("zrange", zrange, 3)
+	s.Register("zrangebyscore", zrangebyscore, 3)
+	s.Register("zrank", zrank, 2)
+	s.Register("zrevrange", zrevrange, 3)
+	s.Register("zrevrangebyscore", zrevrangebyscore, 3)
+	s.Register("zrevrank", zrevrank, 2)
+	s.Register("zscore", zscore, 2)
+
+	//other
+	s.Register("del", del, 1)
 }
 
-func (s *server) GetHandler(command string, aryCmd aryCommand) (func(io.DB, aryConnection, aryCommand), error) {
+func (s *server) GetHandler(command string, aryCmd aryCommand) (func(stor.DB, aryConnection, aryCommand), error) {
 	h, o := s.Handlers[command]
 	if !o {
 		return nil, ErrCommandNotSupported
@@ -134,7 +168,7 @@ func (s *server) GetHandler(command string, aryCmd aryCommand) (func(io.DB, aryC
 }
 
 func NewAryadbServer() *server {
-	storage, err := impl.NewBadgerStorage("/tmp/impl", "/tmp/impl")
+	storage, err := engine.NewBadgerStorage("/tmp/impl", "/tmp/impl")
 	if err != nil {
 		panic(err)
 	}

@@ -78,7 +78,7 @@ func TestCmdDecr(t *testing.T) {
 	}
 }
 
-func TestCmdDecrBy(t *testing.T)  {
+func TestCmdDecrBy(t *testing.T) {
 	key := "k_decrby"
 	val := 10
 
@@ -174,4 +174,3 @@ func TestCmdGetset(t *testing.T) {
 		t.Fatal("Getset result mismatch")
 	}
 }
-

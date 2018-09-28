@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestHashDel(t *testing.T)  {
+func TestHashDel(t *testing.T) {
 
 	key := "hash_del"
 	hashKey := "key"
@@ -22,7 +22,7 @@ func TestHashDel(t *testing.T)  {
 	}
 }
 
-func TestHashExists(t *testing.T)  {
+func TestHashExists(t *testing.T) {
 	key := "hash_exists"
 	hashKey := "key"
 	hashVal := "val"

@@ -1,23 +1,22 @@
-package io
+package stor
 
 import "time"
 
 type IteratorOptions struct {
-	PrefetchValues   bool
-	PrefetchSize     int
-	Reverse          bool
-	AllVersions      bool
+	PrefetchValues bool
+	PrefetchSize   int
+	Reverse        bool
+	AllVersions    bool
 }
 
 var DefaultIteratorOptions = IteratorOptions{
 	PrefetchValues: true,
-	PrefetchSize: 100,
-	Reverse: false,
-	AllVersions: false,
+	PrefetchSize:   100,
+	Reverse:        false,
+	AllVersions:    false,
 }
 
 type DB interface {
-
 	NewTransaction(update bool) Transaction
 
 	View(fn func(txn Transaction) error) error
@@ -26,7 +25,6 @@ type DB interface {
 }
 
 type Transaction interface {
-
 	Get(key []byte) ([]byte, error)
 
 	Set(key, value []byte) error
@@ -47,7 +45,6 @@ type Transaction interface {
 }
 
 type Iterator interface {
-
 	GetItem() Item
 
 	Rewind()
@@ -64,7 +61,6 @@ type Iterator interface {
 }
 
 type Item interface {
-
 	Key() []byte
 
 	Value() ([]byte, error)

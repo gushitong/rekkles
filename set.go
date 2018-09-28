@@ -106,5 +106,57 @@ func smembers(db stor.DB, conn aryConnection, cmd aryCommand) {
 	}
 }
 
+func spop(db stor.DB, conn aryConnection, cmd aryCommand) {
+	v := make([]string, 0)
+	err := db.Update(func(txn stor.Transaction) error {
+		var n int64
+		var err error
+		if len(cmd.Args) >= 2 {
+			n, err = ut.ParseInt64(cmd.Args[1])
+			if err != nil {
+				return err
+			}
+		} else {
+			n = 1
+		}
+		encoder, err := NewSetEncoder(cmd.Args[0])
+		if err != nil {
+			return err
+		}
+		prefix := encoder.Prefix()
+		ops := stor.DefaultIteratorOptions
+		ops.PrefetchValues = false
+		it := txn.NewIterator(ops)
+		defer it.Close()
+		var i int64 = 0
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			key := it.GetItem().Key()
+			member, err := encoder.DecodeMember(key)
+			if err != nil {
+				return err
+			}
+			if err := txn.Del(key); err != nil {
+				return err
+			}
+			if _, err := txn.IncrBy(encoder.QueueKey(), -1); err != nil {
+				return err
+			}
+			v = append(v, string(member))
+			i++
+			if i >= n {
+				break
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		conn.WriteError(err.Error())
+		return
+	}
+	conn.WriteArray(len(v))
+	for _, val := range v {
+		conn.WriteBulkString(val)
+	}
+}
 
 

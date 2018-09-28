@@ -23,7 +23,7 @@ func DumpList(key []byte, txn stor.Transaction) {
 	}
 
 	dumpStr := fmt.Sprintf("[List]: %s ", string(key))
-	prefix := encoder.KeyPrefix()
+	prefix := encoder.Prefix()
 	it := txn.NewIterator(stor.DefaultIteratorOptions)
 	defer it.Close()
 
@@ -34,11 +34,7 @@ func DumpList(key []byte, txn stor.Transaction) {
 		if err != nil {
 			panic(err)
 		}
-		index, err := encoder.DecodeListSeq(listKey)
-		if err != nil {
-			panic(err)
-		}
-		i, err := ut.Bytes2Int64(index)
+		i, err := encoder.DecodeSeq(listKey)
 		if err != nil {
 			panic(err)
 		}

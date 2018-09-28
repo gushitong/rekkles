@@ -25,8 +25,7 @@ func lindex(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if index >= queueLen {
 			return nil
 		}
-		buf, _ := ut.Int642Bytes(minSeqVal + index)
-		key := encoder.EncodeKey(buf)
+		key := encoder.Encode(minSeqVal+index)
 		if val, err := txn.Get(key); err != nil {
 			return err
 		} else {
@@ -71,9 +70,7 @@ func lpop(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if q < 0 {
 			return ErrQueueEmpty
 		}
-		buf := new(bytes.Buffer)
-		binary.Write(buf, binary.LittleEndian, i1)
-		key := encoder.EncodeKey(buf.Bytes())
+		key := encoder.Encode(i1)
 		v, err = txn.Get(key)
 		if err != nil {
 			return err
@@ -99,9 +96,7 @@ func lpush(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if err != nil {
 			return err
 		}
-		buf := new(bytes.Buffer)
-		binary.Write(buf, binary.LittleEndian, &i2)
-		key := encoder.EncodeKey(buf.Bytes())
+		key := encoder.Encode(i2)
 		v = q
 		return txn.Set(key, cmd.Args[1])
 	})
@@ -132,9 +127,7 @@ func lpushx(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if err != nil {
 			return err
 		}
-		buf := new(bytes.Buffer)
-		binary.Write(buf, binary.LittleEndian, i1)
-		key := encoder.EncodeKey(buf.Bytes())
+		key := encoder.Encode(i1)
 		v = q
 		return txn.Set(key, cmd.Args[1])
 	})
@@ -146,11 +139,8 @@ func lrange(db stor.DB, conn aryConnection, cmd aryCommand) {
 	err := db.View(func(txn stor.Transaction) error {
 		encoder, _ := NewListEncoder(cmd.Args[0])
 		queueLen, minSeqVal, err := encoder.Meta(txn)
-		if err != nil {
+		if err != nil || queueLen == 0 {
 			return err
-		}
-		if queueLen == 0 {
-			return nil
 		}
 		i1, err := ut.ParseInt64(cmd.Args[1])
 		if err != nil {
@@ -163,17 +153,36 @@ func lrange(db stor.DB, conn aryConnection, cmd aryCommand) {
 		i1 = ut.FixBoundary(queueLen, i1)
 		i2 = ut.FixBoundary(queueLen, i2)
 
-		for i := i1; i <= i2; i++ {
-			buf, _ := ut.Int642Bytes(i + minSeqVal)
-			key := encoder.EncodeKey(buf)
-			val, _ := txn.Get(key)
-			v = append(v, string(val))
+		prefix := encoder.Prefix()
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
+		defer it.Close()
+		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
+			item := it.GetItem()
+			seq, err := encoder.DecodeSeq(item.Key())
+			if err != nil {
+				return err
+			}
+			val, err := item.Value()
+			if err != nil {
+				return err
+			}
+			if seq >= minSeqVal + i1 && seq <= minSeqVal + i2 {
+				v = append(v, string(val))
+			} else if seq > minSeqVal + i2 {
+				break
+			}
 		}
+		//for i := i1; i <= i2; i++ {
+		//	buf, _ := ut.Int642Bytes(i + minSeqVal)
+		//	key := encoder.Encode(buf)
+		//	val, _ := txn.Get(key)
+		//	v = append(v, string(val))
+		//}
 		return nil
 	})
 
 	if err != nil {
-		conn.WriteErr(err)
+		conn.WriteError(err.Error())
 		return
 	}
 	conn.WriteArray(len(v))
@@ -199,13 +208,12 @@ func lset(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if index >= queueLen {
 			return ErrIndexOutOfRange
 		}
-		seq, _ := ut.Int642Bytes(minSeq + index)
-		key := encoder.EncodeKey(seq)
+		key := encoder.Encode(minSeq + index)
 		return txn.Set(key, cmd.Args[2])
 	})
 
 	if err != nil {
-		conn.WriteErr(err)
+		conn.WriteError(err.Error())
 		return
 	}
 	conn.WriteString("OK")

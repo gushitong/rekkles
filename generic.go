@@ -53,6 +53,15 @@ func del(db stor.DB, conn aryConnection, cmd aryCommand) {
 			if err := delprefix(db, listPrefix); err != nil {
 				return err
 			}
+			// del list prefix
+			listSeqPrefix := ut.ConcatBytearray(
+				[]byte{(byte)(SymbolListIndex)},
+				[]byte{uint8(len(key))},
+				key,
+			)
+			if err := delprefix(db, listSeqPrefix); err != nil {
+				return err
+			}
 			// del queue
 			queueKey := ut.ConcatBytearray(
 				[]byte{(byte)(SymbolQueue)},
@@ -86,4 +95,8 @@ func delprefix(db stor.DB, prefix []byte) error {
 		}
 		return nil
 	})
+}
+
+func ping(db stor.DB, conn aryConnection, cmd aryCommand) {
+	conn.WriteString("PONG")
 }

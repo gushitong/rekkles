@@ -57,3 +57,20 @@ func TestSetMembers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, val, 3)
 }
+
+
+func TestSpop(t *testing.T) {
+	key := "spop"
+	val1, val2, val3 := "1", "2", "3"
+	client.Del(key)
+	client.SAdd(key, val2, val1, val3)
+	val, err := client.SPopN(key, 1).Result()
+	assert.Nil(t, err)
+	assert.Len(t, val, 1)
+	val, err = client.SPopN(key, 3).Result()
+	assert.Nil(t, err)
+	assert.Len(t, val, 2)
+	n, err := client.SCard(key).Result()
+	assert.Nil(t, err)
+	assert.Equal(t, int64(0), n)
+}

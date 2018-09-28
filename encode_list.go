@@ -4,6 +4,8 @@ import (
 	"github.com/gushitong/aryadb/ut"
 	"github.com/gushitong/aryadb/stor"
 	"io"
+	"bytes"
+	"encoding/binary"
 )
 
 type ListOperation int8
@@ -19,19 +21,27 @@ type ListEncoder struct {
 	key []byte
 }
 
-func (l ListEncoder) EncodeKey(seq []byte) []byte {
+func (l ListEncoder) Encode(seq int64) []byte {
+	var flag byte
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, seq)
+	if seq < 0 {
+		flag = '-'
+	} else {
+		flag = '='
+	}
 	return ut.ConcatBytearray(
 		[]byte{(byte)(SymbolList)},
 		[]byte{uint8(len(l.key))},
 		l.key,
-		[]byte{(byte)(SymbolDelimiter)},
-		seq,
+		[]byte{flag},
+		buf.Bytes(),
 	)
 }
 
 func (l ListEncoder) EncodeMinSeqKey() []byte {
 	return ut.ConcatBytearray(
-		[]byte{(byte)(SymbolList)},
+		[]byte{(byte)(SymbolListIndex)},
 		[]byte{uint8(len(l.key))},
 		l.key,
 		[]byte{(byte)(SymbolMinSeq)},
@@ -40,7 +50,7 @@ func (l ListEncoder) EncodeMinSeqKey() []byte {
 
 func (l ListEncoder) EncodeMaxSeqKey() []byte {
 	return ut.ConcatBytearray(
-		[]byte{(byte)(SymbolList)},
+		[]byte{(byte)(SymbolListIndex)},
 		[]byte{uint8(len(l.key))},
 		l.key,
 		[]byte{(byte)(SymbolMaxSeq)},
@@ -54,18 +64,17 @@ func (l ListEncoder) QueueKey() []byte {
 	)
 }
 
-func (l ListEncoder) KeyPrefix() []byte {
+func (l ListEncoder) Prefix() []byte {
 	return ut.ConcatBytearray(
 		[]byte{(byte)(SymbolList)},
 		[]byte{uint8(len(l.key))},
 		l.key,
-		[]byte{(byte)(SymbolDelimiter)},
 	)
 }
 
-func (l ListEncoder) Prefix() []byte {
+func (l ListEncoder) SeqPrefix() []byte {
 	return ut.ConcatBytearray(
-		[]byte{(byte)(SymbolList)},
+		[]byte{(byte)(SymbolListIndex)},
 		[]byte{uint8(len(l.key))},
 		l.key,
 	)
@@ -166,16 +175,16 @@ func (l ListEncoder) UpdateMeta(op ListOperation, txn stor.Transaction) (int64, 
 	return i1, i2, q, err
 }
 
-func (l ListEncoder) DecodeListSeq(listKey []byte) ([]byte, error) {
+func (l ListEncoder) DecodeSeq(listKey []byte) (int64, error) {
 	if listKey[0] != (byte)(SymbolList) {
-		return nil, ErrCorruptedListKey
+		return 0, ErrCorruptedListKey
 	}
 
 	lenKey := int(listKey[1])
 	if len(listKey) <= lenKey+3 {
-		return nil, ErrCorruptedHashKey
+		return 0, ErrCorruptedListKey
 	}
-	return listKey[lenKey+3:], nil
+	return ut.Bytes2Int64(listKey[lenKey+3:])
 }
 
 func NewListEncoder(key []byte) (*ListEncoder, error) {

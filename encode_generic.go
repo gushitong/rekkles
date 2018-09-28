@@ -11,6 +11,7 @@ const (
 	SymbolString Symbol = 'k'
 
 	SymbolList      Symbol = 'l'
+	SymbolListIndex Symbol = 'i'
 	SymbolDelimiter Symbol = '='
 	SymbolMinSeq    Symbol = 'a'
 	SymbolMaxSeq    Symbol = 'b'

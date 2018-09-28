@@ -6,6 +6,7 @@ import (
 	"github.com/gushitong/aryadb/ut"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
+	"fmt"
 )
 
 type Handler func(db stor.DB, conn aryConnection, cmd *aryCommand)
@@ -46,11 +47,15 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 	aryConn := aryConnection{redConn}
 	aryCmd := aryCommand{Args: redCmd.Args[1:], Raw: redCmd.Raw}
 
-	if ut.LowerString(aryCmd.Args[0]) == "auth" {
+	if command == "auth" {
+		if len(aryCmd.Args) == 0 {
+			aryConn.WriteError("wrong number of arguments for 'auth' command")
+			return
+		}
 		if aryConn.Context() == nil {
 			aryConn.SetContext(&Context{})
 		}
-		if err := s.Authenticate(aryConn, ut.LowerString(aryCmd.Args[1])); err != nil {
+		if err := s.Authenticate(aryConn, ut.LowerString(aryCmd.Args[0])); err != nil {
 			aryConn.SetContext(&Context{})
 			aryConn.WriteError("ERR auth failed")
 			return
@@ -67,7 +72,7 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 
 	f, err := s.GetHandler(command, aryCmd)
 	if err != nil {
-		aryConn.WriteErr(err)
+		aryConn.WriteError(err.Error())
 		return
 	}
 
@@ -136,6 +141,7 @@ func (s *server) RegisterAll() {
 	s.Register("scard", scard, 1)
 	s.Register("sismember", sismember, 2)
 	s.Register("smembers", smembers, 1)
+	s.Register("spop", spop, -1)
 
 	//zset
 	s.Register("zadd", zadd, 3)
@@ -154,12 +160,13 @@ func (s *server) RegisterAll() {
 
 	//other
 	s.Register("del", del, 1)
+	s.Register("ping", ping, 0)
 }
 
 func (s *server) GetHandler(command string, aryCmd aryCommand) (func(stor.DB, aryConnection, aryCommand), error) {
 	h, o := s.Handlers[command]
 	if !o {
-		return nil, ErrCommandNotSupported
+		return nil, fmt.Errorf("ERR command '%s' not supported", command)
 	}
 	if h.NArg >= 0 && len(aryCmd.Args) != h.NArg {
 		return nil, ErrWrongNumOfArguments

@@ -91,19 +91,24 @@ func TestListLpushx(t *testing.T) {
 
 func TestListLrange(t *testing.T) {
 	key := "lrange"
-	val := "val"
+	k1, k2, k3, k4 := 1, 2, 3, 4
 
 	client.Del(key)
 	v, err := client.LRange(key, 0, -1).Result()
 	assert.Nil(t, err)
 	assert.Len(t, v, 0)
-
-	client.LPush(key, val)
-	client.LPush(key, val)
-
+	client.LPush(key, k1)
+	client.LPush(key, k2)
+	client.LPush(key, k3)
+	client.LPush(key, k4)
+	v, err = client.LRange(key, 2, 3).Result()
+	assert.Nil(t, err)
+	assert.Equal(t, "2", v[0])
+	assert.Equal(t, "1", v[1])
 	v, err = client.LRange(key, 0, -1).Result()
 	assert.Nil(t, err)
-	assert.Len(t, v, 2)
+	assert.Equal(t, "4", v[0])
+	assert.Equal(t, "1", v[3])
 }
 
 func TestListLset(t *testing.T) {

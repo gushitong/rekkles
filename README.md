@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.com/gushitong/aryadb.svg?branch=master)](https://travis-ci.com/gushitong/aryadb)
 [![NoSQL](https://img.shields.io/badge/db-NoSQL-blue.svg)](https://github.com/gushitong/aryadb)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gushitong/aryadb)](https://goreportcard.com/report/github.com/gushitong/aryadb)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gushitong/aryadb?service=github)](https://goreportcard.com/report/github.com/gushitong/aryadb)
 [![License](https://img.shields.io/badge/License-Apache-green.svg)]((https://github.com/gushitong/aryadb))
 
 aryadb is a high performance no-sql database build on [BadgerDB](https://github.com/dgraph-io/badger) with redis protocol

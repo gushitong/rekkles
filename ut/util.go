@@ -3,7 +3,6 @@ package ut
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"hash/fnv"
@@ -73,16 +72,6 @@ func ConcatBytearray(bytesarray ...[]byte) []byte {
 	return buf
 }
 
-func Lindex(min, max, index int) (int, error) {
-	l := max - min
-	if index > l || index < -1*l {
-		return 0, errors.New("List index exceeded")
-	} else if index < 0 {
-		index += l
-	}
-	return l - index, nil
-}
-
 func Bytes2Int64(val []byte) (int64, error) {
 	var i int64
 	buf := bytes.NewBuffer(val)
@@ -90,8 +79,16 @@ func Bytes2Int64(val []byte) (int64, error) {
 	return i, err
 }
 
-func Int642Bytes(val int64) ([]byte, error) {
+func Int642Bytes(val int64) []byte {
 	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, &val)
-	return buf.Bytes(), err
+	binary.Write(buf, binary.LittleEndian, &val)
+	return buf.Bytes()
+}
+
+func DecodeInt64(val []byte) ([]byte, error) {
+	i, err := Bytes2Int64(val)
+	if err != nil {
+		return nil, err
+	}
+	return FormatInt64(i), nil
 }

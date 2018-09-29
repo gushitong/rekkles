@@ -79,7 +79,7 @@ func DumpZset(key []byte, txn stor.Transaction) {
 	dumpStr := fmt.Sprintf("[Zset]: %s ", string(key))
 	for it.Seek(encoder.MemberPrefix()); it.ValidForPrefix(encoder.MemberPrefix()); it.Next() {
 		item := it.GetItem()
-		member, err := encoder.DecodeMember(item.Key())
+		member, err := encoder.DecodeMemberKey(item.Key())
 		if err != nil {
 			panic(err)
 		}
@@ -107,7 +107,7 @@ func DumpZsetScore(key []byte, txn stor.Transaction) {
 	dumpStr := fmt.Sprintf("[Z]: %s ", string(key))
 	for it.Seek(encoder.ScorePrefix()); it.ValidForPrefix(encoder.ScorePrefix()); it.Next() {
 		item := it.GetItem()
-		score, err := encoder.DecodeScore(item.Key())
+		score, err := encoder.DecodeScoreKey(item.Key())
 		if err != nil {
 			panic(err)
 		}

@@ -325,7 +325,7 @@ func set(db stor.DB, conn aryConnection, cmd aryCommand) {
 	})
 
 	if err != nil {
-		conn.WriteErr(err)
+		conn.WriteError(err.Error())
 		return
 	}
 	conn.WriteString("OK")

@@ -125,10 +125,7 @@ func (l ListEncoder) UpdateCapacity (op ListOperation, txn stor.Transaction) (in
 	if queueLen+incr < 0 {
 		return 0, ErrQueueEmpty
 	}
-	buf, err := ut.Int642Bytes(queueLen + incr)
-	if err != nil {
-		return 0, err
-	}
+	buf := ut.Int642Bytes(queueLen + incr)
 	return queueLen + incr, txn.Set(queueKey, buf)
 }
 
@@ -159,7 +156,7 @@ func (l ListEncoder) UpdateBoundary (op ListOperation, txn stor.Transaction) (in
 		oldBoundary, err = ut.Bytes2Int64(val)
 		newBoundary = oldBoundary + incr
 	}
-	buf, _ := ut.Int642Bytes(newBoundary)
+	buf := ut.Int642Bytes(newBoundary)
 	return oldBoundary, newBoundary, txn.Set(seqKey, buf)
 }
 

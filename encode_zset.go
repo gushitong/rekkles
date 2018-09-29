@@ -6,7 +6,7 @@ type ZsetEncoder struct {
 	key []byte
 }
 
-func (z ZsetEncoder) EncodeMember(member []byte) []byte {
+func (z ZsetEncoder) EncodeMemberKey(member []byte) []byte {
 	return ut.ConcatBytearray(
 		[]byte{(byte)(SymbolSet)},
 		[]byte{uint8(len(z.key))},
@@ -24,15 +24,14 @@ func (z ZsetEncoder) MemberPrefix() []byte {
 	)
 }
 
-func (z ZsetEncoder) EncodeScore(score int64) []byte {
+func (z ZsetEncoder) EncodeScoreKey(score int64) []byte {
 	var flag byte
 	if score < 0 {
 		flag = '-'
-		score *= -1
-	}else {
+	} else {
 		flag = '='
 	}
-	zscore := ut.FormatInt64(score)
+	zscore := ut.Int642Bytes(score)
 	return ut.ConcatBytearray(
 		[]byte{(byte)(SymbolZset)},
 		[]byte{uint8(len(z.key))},
@@ -50,20 +49,23 @@ func (z ZsetEncoder) ScorePrefix() []byte {
 	)
 }
 
-func (z ZsetEncoder) DecodeScore(scoreKey []byte) (int64, error) {
+func (z ZsetEncoder) EncodeScore(score []byte) ([]byte, error) {
+	s, err := ut.ParseInt64(score)
+	if err != nil {
+		return nil, err
+	}
+	return ut.Int642Bytes(s), nil
+}
+
+func (z ZsetEncoder) DecodeScoreKey(scoreKey []byte) (int64, error) {
 	if len(scoreKey) < 5 || scoreKey[0] != (byte)(SymbolZset){
 		return 0, ErrCorruptedZsetScore
 	}
 	lKey := int(scoreKey[1])
-	if scoreKey[lKey+2] == '-' {
-		score, err := ut.ParseInt64(scoreKey[lKey+3:])
-		score *= -1
-		return score, err
-	}
-	return ut.ParseInt64(scoreKey[lKey+3:])
+	return ut.Bytes2Int64(scoreKey[lKey+3:])
 }
 
-func (z ZsetEncoder) DecodeMember(memberKey []byte) ([]byte, error) {
+func (z ZsetEncoder) DecodeMemberKey(memberKey []byte) ([]byte, error) {
 	if len(memberKey) < 3 || memberKey[0] != (byte)(SymbolSet){
 		return nil, ErrCorruptedZsetMember
 	}

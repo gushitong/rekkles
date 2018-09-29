@@ -19,7 +19,7 @@ func zadd(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if err != nil {
 			return err
 		}
-		memberKey := encoder.EncodeMember(cmd.Args[2])
+		memberKey := encoder.EncodeMemberKey(cmd.Args[2])
 		if val, err := txn.Get(memberKey); err != nil {
 			return err
 		} else if val == nil {
@@ -28,11 +28,12 @@ func zadd(db stor.DB, conn aryConnection, cmd aryCommand) {
 				return err
 			}
 		}
-		err = txn.Set(memberKey, cmd.Args[1])
+		encodedScore := ut.Int642Bytes(score)
+		err = txn.Set(memberKey, encodedScore)
 		if err != nil {
 			return err
 		}
-		scoreKey := encoder.EncodeScore(score)
+		scoreKey := encoder.EncodeScoreKey(score)
 		return txn.Set(scoreKey, cmd.Args[2])
 	})
 	if err != nil {
@@ -75,7 +76,7 @@ func zcount(db stor.DB, conn aryConnection, cmd aryCommand)  {
 		if max < min {
 			return nil
 		}
-		minKey, maxKey := encoder.EncodeScore(min), encoder.EncodeScore(max)
+		minKey, maxKey := encoder.EncodeScoreKey(min), encoder.EncodeScoreKey(max)
 		prefix := encoder.ScorePrefix()
 		ops := stor.DefaultIteratorOptions
 		ops.PrefetchValues = false
@@ -106,37 +107,38 @@ func zincrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if err != nil {
 			return ErrIntegerValue
 		}
-		memberKey := encoder.EncodeMember(cmd.Args[2])
+		memberKey := encoder.EncodeMemberKey(cmd.Args[2])
 		val, err := txn.Get(memberKey)
 		if err != nil {
 			return err
 		} else if val == nil {
-			err := txn.Set(memberKey, cmd.Args[1])
+			score := ut.Int642Bytes(incr)
+			err := txn.Set(memberKey, score)
 			if err != nil {
 				return err
 			}
-			scoreKey := encoder.EncodeScore(incr)
+			scoreKey := encoder.EncodeScoreKey(incr)
 			err = txn.Set(scoreKey, cmd.Args[2])
 			if err != nil {
 				return err
 			}
 			v = ut.FormatInt64(incr)
 		} else {
-			score, err := ut.ParseInt64(val)
+			score, err := ut.Bytes2Int64(val)
 			if err != nil {
 				return ErrCorruptedZsetScore
 			}
-			scoreKey := encoder.EncodeScore(score)
+			scoreKey := encoder.EncodeScoreKey(score)
 			err = txn.Del(scoreKey)
 			if err != nil {
 				return err
 			}
-			val = ut.FormatInt64(score+incr)
-			err = txn.Set(memberKey, val)
+			valEncoded := ut.Int642Bytes(score+incr)
+			err = txn.Set(memberKey, valEncoded)
 			if err != nil {
 				return err
 			}
-			scoreKey = encoder.EncodeScore(score+incr)
+			scoreKey = encoder.EncodeScoreKey(score+incr)
 			err = txn.Set(scoreKey, cmd.Args[2])
 			if err != nil {
 				return err
@@ -158,7 +160,6 @@ func zpopmax(db stor.DB, conn aryConnection, cmd aryCommand) {
 		encoder := &ZsetEncoder{cmd.Args[0]}
 		prefix := encoder.ScorePrefix()
 		ops := stor.DefaultIteratorOptions
-		ops.PrefetchValues = false
 		ops.Reverse = true
 		it := txn.NewIterator(ops)
 		defer it.Close()
@@ -169,7 +170,7 @@ func zpopmax(db stor.DB, conn aryConnection, cmd aryCommand) {
 			if err != nil {
 				return err
 			}
-			score, err := encoder.DecodeScore(key)
+			score, err := encoder.DecodeScoreKey(key)
 			v = append(v, string(value))
 			v = append(v, string(ut.FormatInt64(score)))
 			break
@@ -192,9 +193,7 @@ func zpopmin(db stor.DB, conn aryConnection, cmd aryCommand) {
 	err := db.View(func(txn stor.Transaction) error {
 		encoder := &ZsetEncoder{cmd.Args[0]}
 		prefix := encoder.ScorePrefix()
-		ops := stor.DefaultIteratorOptions
-		ops.PrefetchValues = false
-		it := txn.NewIterator(ops)
+		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.GetItem()
@@ -203,7 +202,7 @@ func zpopmin(db stor.DB, conn aryConnection, cmd aryCommand) {
 			if err != nil {
 				return err
 			}
-			score, err := encoder.DecodeScore(key)
+			score, err := encoder.DecodeScoreKey(key)
 			v = append(v, string(value))
 			v = append(v, string(ut.FormatInt64(score)))
 			break
@@ -263,7 +262,7 @@ func _zrange(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool) {
 			if i >= start && i <= end {
 				v = append(v, string(value))
 				if withscores {
-					score, err := encoder.DecodeScore(scoreKey)
+					score, err := encoder.DecodeScoreKey(scoreKey)
 					if err != nil {
 						return err
 					}
@@ -307,7 +306,7 @@ func _zrangebyscore(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool
 			return nil
 		}
 		encoder := ZsetEncoder{cmd.Args[0]}
-		//minKey, maxKey := encoder.EncodeScore(min), encoder.EncodeScore(max)
+		//minKey, maxKey := encoder.EncodeScoreKey(min), encoder.EncodeScoreKey(max)
 		prefix := encoder.ScorePrefix()
 		ops := stor.DefaultIteratorOptions
 		ops.Reverse = reverse
@@ -320,14 +319,14 @@ func _zrangebyscore(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool
 			if err != nil {
 				return err
 			}
-			score, err := encoder.DecodeScore(scoreKey)
+			score, err := encoder.DecodeScoreKey(scoreKey)
 			if err != nil {
 				return err
 			}
 			if min <= score && score <= max {
 				v = append(v, string(value))
 				if withscores {
-					score, err := encoder.DecodeScore(scoreKey)
+					score, err := encoder.DecodeScoreKey(scoreKey)
 					if err != nil {
 						return err
 					}
@@ -356,9 +355,11 @@ func zrangebyscore(db stor.DB, conn aryConnection, cmd aryCommand) {
 func _zrank(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool) {
 	var v int64
 	db.View(func(txn stor.Transaction) error {
-		var i int64
-		encoder := &ZsetEncoder{cmd.Args[0]}
-		memberKey := encoder.EncodeMember(cmd.Args[1])
+		encoder, err := NewZsetEncoder(cmd.Args[0])
+		if err != nil {
+			return err
+		}
+		memberKey := encoder.EncodeMemberKey(cmd.Args[1])
 		val, err := txn.Get(memberKey)
 		if err != nil {
 			return err
@@ -366,17 +367,19 @@ func _zrank(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool) {
 		if val == nil {
 			return nil
 		}
-		score, err := ut.ParseInt64(val)
+		score, err := ut.Bytes2Int64(val)
 		if err != nil {
 			return err
 		}
 		prefix := encoder.ScorePrefix()
-		scoreKey := encoder.EncodeScore(score)
+		scoreKey := encoder.EncodeScoreKey(score)
+
 		ops := stor.DefaultIteratorOptions
 		ops.Reverse = reverse
 		ops.PrefetchValues = false
 		it := txn.NewIterator(stor.DefaultIteratorOptions)
 		defer it.Close()
+		var i int64 = 0
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			i++
 			if bytes.Compare(it.GetItem().Key(), scoreKey) == 0 {
@@ -386,7 +389,7 @@ func _zrank(db stor.DB, conn aryConnection, cmd aryCommand, reverse bool) {
 		return nil
 	})
 	if v == 0 {
-		conn.WriteNull()
+		conn.WriteString("nil")
 		return
 	}
 	conn.WriteInt64(v)
@@ -412,11 +415,15 @@ func zscore(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v []byte
 	err := db.View(func(txn stor.Transaction) error {
 		encoder := &ZsetEncoder{cmd.Args[0]}
-		memberKey := encoder.EncodeMember(cmd.Args[1])
+		memberKey := encoder.EncodeMemberKey(cmd.Args[1])
 		if val, err := txn.Get(memberKey); err != nil {
 			return err
 		} else {
-			v = val
+			score, err := ut.Bytes2Int64(val)
+			if err != nil {
+				return err
+			}
+			v = ut.FormatInt64(score)
 		}
 		return nil
 	})

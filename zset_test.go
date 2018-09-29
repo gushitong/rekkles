@@ -93,7 +93,7 @@ func TestZRange(t *testing.T) {
 func TestZRangebyscore(t *testing.T) {
 	key := "zrangebyscore"
 	k1, k2, k3 := "k1", "k2", "k3"
-	s1, s2, s3 := 2.0, 5.0, 7.0
+	s1, s2, s3 := -2.0, 5.0, 7.0
 	client.Del(key)
 	client.ZAdd(key, redis.Z{s1, k1})
 	client.ZAdd(key, redis.Z{s2, k2})
@@ -103,7 +103,7 @@ func TestZRangebyscore(t *testing.T) {
 	assert.Len(t, val, 1)
 	val, err = client.ZRangeByScore(key, redis.ZRangeBy{Min:"0", Max:"15"}).Result()
 	assert.Nil(t, err)
-	assert.Len(t, val, 3)
+	assert.Len(t, val, 2)
 }
 
 

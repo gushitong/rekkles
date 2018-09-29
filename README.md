@@ -6,9 +6,33 @@
 aryadb is a high performance no-sql database build on [BadgerDB](https://github.com/dgraph-io/badger) with redis protocol
 support. It meant to provide a key-value store alternative to redis.
 
-## Install
+* Pure `golang` implementation, no `c/c++` dependency
+* Compatible with redis protocol, Redis client are supported
+* Persistent all data to the disk
 
-    go get github.com/gushitong/aryadb
+## Basic usage
+```bash
+go get github.com/gushitong/aryadb
+```
+    
+```bash
+$ aryadb 
+2018/09/29 12:05:53 started server at :6380    
+```    
+
+```bash
+$ redis-cli -p 6380
+127.0.0.1:6380> SET k 1
+OK
+127.0.0.1:6380> GET k
+"1"
+127.0.0.1:6380> HSET hash k v
+(integer) 1
+127.0.0.1:6380> HGET hash k
+"v"
+127.0.0.1:6380> PING
+PONG
+```    
     
 ## Redis Command Support
 

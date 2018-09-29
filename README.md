@@ -13,7 +13,7 @@ support. It meant to provide a key-value store alternative to redis.
 * Compatible with redis protocol, Redis client are supported
 * Persistent all data to the disk
 
-## Basic usage
+## Example
 ```bash
 go get github.com/gushitong/aryadb
 ```
@@ -39,17 +39,27 @@ PONG
     
 ## Redis Command Support
 
-* String Command
-
-```bash
-append decr decrby get getbit getrange getset incr incrby mget mset msetnx set setbit setex setnx setrange strlen
-```
-
-* Hash Command
-
-```bash
-hdel hexists hget hgetall hincrby hincrbyfloat hkeys hlen hmget hmset hscan hset hsetnx hstrlen hvals
-```
+| String Command | Description |
+|:--------------:|-------------|
+| `append`  | Append a value to a key |
+| `decr`    | Decrements the number stored at key by one. |
+| `decrby`  | Decrements the number stored at key by decrement. |
+| `get`     | Get the value of key. |
+| `getbit`  | Returns the bit value at offset in the string value stored at key. |
+| `getrange`| Returns the substring of the string value stored at key, determined by the offsets start and end (both are inclusive) |
+| `getset`   | Atomically sets key to value and returns the old value stored at key.  |
+| `incr`     | Increments the number stored at key by one. |
+| `incrby`   | Increments the number stored at key by increment. |
+| `incrfloat`| Increment the string representing a floating point number stored at key by the specified increment. |
+| `mget`   | Returns the values of all specified keys.  |
+| `mset`   | Sets the given keys to their respective values. |
+| `msetnx`   | Sets the given keys to their respective values. |
+| `set`   |  Set key to hold the string value. |
+| `setbit`   | Sets or clears the bit at offset in the string value stored at key. |
+| `setex`   | Set key to hold the string value and set key to timeout after a given number of seconds. |
+| `setnx`   | Set key to hold string value if key does not exist. |
+| `setrange`   | Overwrites part of the string stored at key, starting at the specified offset, for the entire length of value.  |
+| `strlen`   | Returns the length of the string value stored at key. |
 
 ## Benchmark
 

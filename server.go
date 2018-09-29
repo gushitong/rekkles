@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gushitong/aryadb/engine"
 	"github.com/gushitong/aryadb/stor"
 	"github.com/gushitong/aryadb/ut"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
-	"fmt"
 )
 
 type Handler func(db stor.DB, conn aryConnection, cmd *aryCommand)

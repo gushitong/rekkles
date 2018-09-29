@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/stor"
 	"bytes"
+	"github.com/gushitong/aryadb/stor"
 	"github.com/gushitong/aryadb/ut"
 )
 
@@ -158,5 +158,3 @@ func spop(db stor.DB, conn aryConnection, cmd aryCommand) {
 		conn.WriteBulkString(val)
 	}
 }
-
-

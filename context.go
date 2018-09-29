@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/tidwall/redcon"
 	"github.com/gushitong/aryadb/ut"
+	"github.com/tidwall/redcon"
 )
 
 type Context struct {

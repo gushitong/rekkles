@@ -3,9 +3,9 @@ package ut
 import (
 	"bytes"
 	"encoding/binary"
+	"hash/fnv"
 	"strconv"
 	"strings"
-	"hash/fnv"
 )
 
 func Hash(p []byte) []byte {

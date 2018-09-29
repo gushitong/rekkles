@@ -42,6 +42,5 @@ func NewSetEncoder(key []byte) (*SetEncoder, error) {
 	if len(key) > MaxKeySize {
 		return nil, ErrKeySizeExceeded
 	}
-	return &SetEncoder{key:key}, nil
+	return &SetEncoder{key: key}, nil
 }
-

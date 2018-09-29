@@ -1,8 +1,8 @@
 package main
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSetSadd(t *testing.T) {
@@ -57,7 +57,6 @@ func TestSetMembers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, val, 3)
 }
-
 
 func TestSpop(t *testing.T) {
 	key := "spop"

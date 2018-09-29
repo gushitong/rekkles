@@ -45,5 +45,5 @@ func NewHashEncoder(key []byte) (*HashEncoder, error) {
 	if len(key) > MaxKeySize {
 		return nil, ErrKeySizeExceeded
 	}
-	return &HashEncoder{key:key}, nil
+	return &HashEncoder{key: key}, nil
 }

@@ -58,7 +58,7 @@ func (z ZsetEncoder) EncodeScore(score []byte) ([]byte, error) {
 }
 
 func (z ZsetEncoder) DecodeScoreKey(scoreKey []byte) (int64, error) {
-	if len(scoreKey) < 5 || scoreKey[0] != (byte)(SymbolZset){
+	if len(scoreKey) < 5 || scoreKey[0] != (byte)(SymbolZset) {
 		return 0, ErrCorruptedZsetScore
 	}
 	lKey := int(scoreKey[1])
@@ -66,7 +66,7 @@ func (z ZsetEncoder) DecodeScoreKey(scoreKey []byte) (int64, error) {
 }
 
 func (z ZsetEncoder) DecodeMemberKey(memberKey []byte) ([]byte, error) {
-	if len(memberKey) < 3 || memberKey[0] != (byte)(SymbolSet){
+	if len(memberKey) < 3 || memberKey[0] != (byte)(SymbolSet) {
 		return nil, ErrCorruptedZsetMember
 	}
 	lKey := int(memberKey[1])
@@ -84,5 +84,5 @@ func NewZsetEncoder(key []byte) (*ZsetEncoder, error) {
 	if len(key) > MaxKeySize {
 		return nil, ErrWrongNumOfArguments
 	}
-	return &ZsetEncoder{key:key}, nil
+	return &ZsetEncoder{key: key}, nil
 }

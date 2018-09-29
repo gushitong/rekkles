@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"github.com/gushitong/aryadb/stor"
 	"github.com/gushitong/aryadb/ut"
-	"bytes"
 )
 
 func zadd(db stor.DB, conn aryConnection, cmd aryCommand) {
@@ -61,7 +61,7 @@ func zcard(db stor.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func zcount(db stor.DB, conn aryConnection, cmd aryCommand)  {
+func zcount(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v int64
 	err := db.View(func(txn stor.Transaction) error {
 		encoder := ZsetEncoder{cmd.Args[0]}
@@ -86,7 +86,7 @@ func zcount(db stor.DB, conn aryConnection, cmd aryCommand)  {
 			key := it.GetItem().Key()
 			if bytes.Compare(key, minKey) >= 0 || bytes.Compare(key, maxKey) <= 0 {
 				v++
-			} else if bytes.Compare(key, maxKey) > 0{
+			} else if bytes.Compare(key, maxKey) > 0 {
 				break
 			}
 		}
@@ -133,17 +133,17 @@ func zincrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 			if err != nil {
 				return err
 			}
-			valEncoded := ut.Int642Bytes(score+incr)
+			valEncoded := ut.Int642Bytes(score + incr)
 			err = txn.Set(memberKey, valEncoded)
 			if err != nil {
 				return err
 			}
-			scoreKey = encoder.EncodeScoreKey(score+incr)
+			scoreKey = encoder.EncodeScoreKey(score + incr)
 			err = txn.Set(scoreKey, cmd.Args[2])
 			if err != nil {
 				return err
 			}
-			v = ut.FormatInt64(incr+score)
+			v = ut.FormatInt64(incr + score)
 		}
 		return nil
 	})

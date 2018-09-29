@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gushitong/aryadb/stor"
 	"github.com/gushitong/aryadb/ut"
 	"io"
-	"bytes"
 )
 
 func DumpList(key []byte, txn stor.Transaction) {
@@ -97,7 +97,6 @@ func DumpZset(key []byte, txn stor.Transaction) {
 	dumpStr += fmt.Sprintf(" (len %s)", queueLen)
 	fmt.Println(dumpStr)
 }
-
 
 func DumpZsetScore(key []byte, txn stor.Transaction) {
 	encoder, _ := NewZsetEncoder(key)

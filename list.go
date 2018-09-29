@@ -25,7 +25,7 @@ func lindex(db stor.DB, conn aryConnection, cmd aryCommand) {
 		if index >= queueLen {
 			return nil
 		}
-		key := encoder.Encode(minSeqVal+index)
+		key := encoder.Encode(minSeqVal + index)
 		if val, err := txn.Get(key); err != nil {
 			return err
 		} else {
@@ -166,9 +166,9 @@ func lrange(db stor.DB, conn aryConnection, cmd aryCommand) {
 			if err != nil {
 				return err
 			}
-			if seq >= minSeqVal + i1 && seq <= minSeqVal + i2 {
+			if seq >= minSeqVal+i1 && seq <= minSeqVal+i2 {
 				v = append(v, string(val))
-			} else if seq > minSeqVal + i2 {
+			} else if seq > minSeqVal+i2 {
 				break
 			}
 		}

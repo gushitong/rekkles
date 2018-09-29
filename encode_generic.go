@@ -15,7 +15,7 @@ const (
 	SymbolDelimiter Symbol = '='
 	SymbolMinSeq    Symbol = 'a'
 	SymbolMaxSeq    Symbol = 'b'
-	SymbolQueue Symbol = 'q' // 容量
+	SymbolQueue     Symbol = 'q' // 容量
 )
 
 const (
@@ -36,5 +36,5 @@ func (s StringEncoder) Encode() []byte {
 }
 
 func NewStringEncoder(key []byte) *StringEncoder {
-	return &StringEncoder{key:key}
+	return &StringEncoder{key: key}
 }

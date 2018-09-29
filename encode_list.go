@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/ut"
-	"github.com/gushitong/aryadb/stor"
-	"io"
 	"bytes"
 	"encoding/binary"
+	"github.com/gushitong/aryadb/stor"
+	"github.com/gushitong/aryadb/ut"
+	"io"
 )
 
 type ListOperation int8
@@ -102,7 +102,7 @@ func (l ListEncoder) Meta(txn stor.Transaction) (queue int64, minSeq int64, err 
 	return
 }
 
-func (l ListEncoder) UpdateCapacity (op ListOperation, txn stor.Transaction) (int64, error) {
+func (l ListEncoder) UpdateCapacity(op ListOperation, txn stor.Transaction) (int64, error) {
 	var queueLen, incr int64
 	queueKey := l.QueueKey()
 	if val, err := txn.Get(queueKey); err != nil {
@@ -129,7 +129,7 @@ func (l ListEncoder) UpdateCapacity (op ListOperation, txn stor.Transaction) (in
 	return queueLen + incr, txn.Set(queueKey, buf)
 }
 
-func (l ListEncoder) UpdateBoundary (op ListOperation, txn stor.Transaction) (int64, int64, error) {
+func (l ListEncoder) UpdateBoundary(op ListOperation, txn stor.Transaction) (int64, int64, error) {
 	var err error
 	var seqKey []byte
 	var incr int64
@@ -188,5 +188,5 @@ func NewListEncoder(key []byte) (*ListEncoder, error) {
 	if len(key) > MaxKeySize {
 		return nil, ErrKeySizeExceeded
 	}
-	return &ListEncoder{key:key}, nil
+	return &ListEncoder{key: key}, nil
 }

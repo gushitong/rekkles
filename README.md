@@ -15,10 +15,12 @@ support. It meant to provide a key-value store alternative to redis.
 * Better transaction support, ttl support
 
 ## Install
- 
+
 ```bash
 go get github.com/gushitong/aryadb
 ```
+
+* `aryadb` server start options:
 
 ```bash
 aryadb -h
@@ -37,11 +39,13 @@ Usage of aryadb:
 
 ## Example   
  
+* start `aryadb` server: 
 ```bash
 $ aryadb -d /tmp/araydb -v /tmp/araydb -b :6380
 2018/09/29 12:05:53 started server at :6380    
 ```    
 
+* connect `aryadb` with `redis-cli`:
 ```bash
 $ redis-cli -p 6380
 127.0.0.1:6380> SET k 1

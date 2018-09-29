@@ -39,27 +39,27 @@ PONG
     
 ## Redis Command Support
 
-| String Command | Description |
-|:--------------:|-------------|
-| `append`  | Append a value to a key |
-| `decr`    | Decrements the number stored at key by one. |
-| `decrby`  | Decrements the number stored at key by decrement. |
-| `get`     | Get the value of key. |
-| `getbit`  | Returns the bit value at offset in the string value stored at key. |
-| `getrange`| Returns the substring of the string value stored at key, determined by the offsets start and end (both are inclusive) |
-| `getset`   | Atomically sets key to value and returns the old value stored at key.  |
-| `incr`     | Increments the number stored at key by one. |
-| `incrby`   | Increments the number stored at key by increment. |
-| `incrfloat`| Increment the string representing a floating point number stored at key by the specified increment. |
-| `mget`   | Returns the values of all specified keys.  |
-| `mset`   | Sets the given keys to their respective values. |
-| `msetnx`   | Sets the given keys to their respective values. |
-| `set`   |  Set key to hold the string value. |
-| `setbit`   | Sets or clears the bit at offset in the string value stored at key. |
-| `setex`   | Set key to hold the string value and set key to timeout after a given number of seconds. |
-| `setnx`   | Set key to hold string value if key does not exist. |
-| `setrange`   | Overwrites part of the string stored at key, starting at the specified offset, for the entire length of value.  |
-| `strlen`   | Returns the length of the string value stored at key. |
+|  Strings   | Lists    | Hashes    | Sets      | Sorted Sets   |
+|:----------:|:--------:|:---------:|:---------:|:-------------:|
+| `append`   | `lindex` | `hdel`    | `sadd`    | `zadd`        |
+| `decr`     | `llen`   | `hexists` | `scard`   | `zcard`       |
+| `decrby`   | `lpop`   | `hget`    | `sismember`| `zcount`     |
+| `get`      | `lpush`  | `hgetall` | `smembers` | `zincrby`    |
+| `getbit`   | `lpushx` | `hincrby` | `spop`    | `zpopmax`     |
+| `getrange` | `lrange` | `hincrbyfloat` |      | `zpopmin`     |
+| `getset`   | `lset`   | `hkeys`   |           | `zrange`      |
+| `incr`     |          | `hlen`    |           | `zrangebyscore`|   
+| `incrby`   |          | `hmget`   |           | `zrank`       |
+| `incrfloat`|          | `hmset`   |           | `zrevrange`   |
+| `mget`     |          | `hscan`   |           | `zrevrangebyscore`|
+| `mset`     |          | `hset`    |           | `zrevrank`    |
+| `msetnx`   |          | `hsetnx`  |           | `zscore`      |  
+| `set`      |          | `hstrlen` |           |               |
+| `setbit`   |          | `hvals`   |           |               |
+| `setex`    |          |           |           |               |
+| `setnx`    |          |           |           |               |
+| `setrange` |          |           |           |               |
+| `strlen`   |          |           |           |               |
 
 ## Benchmark
 

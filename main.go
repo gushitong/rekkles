@@ -1,33 +1,25 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
-
-	"github.com/tidwall/redcon"
 )
 
-var addr = ":6380"
-
 func main() {
+	opt := new(Options)
+	flag.StringVar(&opt.Addr, "b", ":6380", "listen address")
+	flag.StringVar(&opt.Dir, "d", "/tmp/aryadb", "working dir")
+	flag.StringVar(&opt.ValueDir, "v", "/tmp/aryadb", "value log dir")
+	flag.StringVar(&opt.Auth, "a", "", "auth string")
+	flag.BoolVar(&opt.SyncWrites, "s", true, "sync all writes to disk. Setting this to false would achieve better performance, but may cause data to be lost.")
+	flag.Parse()
 
-	server := NewAryadbServer()
-	go log.Printf("started server at %s", addr)
-
-	err := redcon.ListenAndServe(addr,
-		func(conn redcon.Conn, cmd redcon.Command) {
-			server.Handle(conn, cmd)
-		},
-		func(conn redcon.Conn) bool {
-			// use this function to accept or deny the connection.
-			// log.Printf("accept: %stor", conn.RemoteAddr())
-			return true
-		},
-		func(conn redcon.Conn, err error) {
-			// this is called when the connection has been closed
-			// log.Printf("closed: %stor, err: %v", conn.RemoteAddr(), err)
-		},
-	)
+	server, err := NewAryadbServer(opt)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("Server not started: %s", err)
+		return
 	}
+	go log.Printf("started server at %s", opt.Addr)
+	log.Fatal(server.ListenAndSrv())
 }

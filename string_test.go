@@ -9,7 +9,7 @@ import (
 var client *redis.Client
 
 func init() {
-	db := NewAryadbServer()
+	db, _ := NewAryadbServer(&DefaultOptions)
 	go redcon.ListenAndServe(":6380",
 		func(conn redcon.Conn, cmd redcon.Command) {
 			db.Handle(conn, cmd)

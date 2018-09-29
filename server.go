@@ -9,7 +9,21 @@ import (
 	"github.com/tidwall/redcon"
 )
 
-type Handler func(db stor.DB, conn aryConnection, cmd *aryCommand)
+type Options struct {
+	Addr       string
+	Auth       string
+	Dir        string
+	ValueDir   string
+	SyncWrites bool
+}
+
+var DefaultOptions = Options{
+	Addr:       ":6380",
+	Auth:       "",
+	Dir:        "/tmp/aryadb",
+	ValueDir:   "/tmp/aryadb",
+	SyncWrites: false,
+}
 
 type handler struct {
 	Name string
@@ -19,16 +33,12 @@ type handler struct {
 
 type server struct {
 	db       stor.DB
-	Auth     string
+	Options  *Options
 	Handlers map[string]*handler
 }
 
-func (s *server) RequirePass() bool {
-	return s.Auth != ""
-}
-
 func (s *server) Authenticate(conn aryConnection, auth string) error {
-	if s.Auth != auth {
+	if s.Options.Auth != auth {
 		return errors.New("auth failed.")
 	}
 	ctx := conn.Context().(*Context)
@@ -65,7 +75,7 @@ func (s *server) Handle(redConn redcon.Conn, redCmd redcon.Command) {
 		return
 	}
 
-	if s.RequirePass() && aryConn.Authenticated() == false {
+	if s.Options.Auth != "" && aryConn.Authenticated() == false {
 		aryConn.WriteString("ERR auth required")
 		return
 	}
@@ -174,16 +184,36 @@ func (s *server) GetHandler(command string, aryCmd aryCommand) (func(stor.DB, ar
 	return h.Func, nil
 }
 
-func NewAryadbServer() *server {
-	storage, err := engine.NewBadgerStorage("/tmp/impl", "/tmp/impl")
+func (s *server) ListenAndSrv() error {
+	return redcon.ListenAndServe(s.Options.Addr,
+		func(conn redcon.Conn, cmd redcon.Command) {
+			s.Handle(conn, cmd)
+		},
+		func(conn redcon.Conn) bool {
+			// use this function to accept or deny the connection.
+			// log.Printf("accept: %stor", conn.RemoteAddr())
+			return true
+		},
+		func(conn redcon.Conn, err error) {
+			// this is called when the connection has been closed
+			// log.Printf("closed: %stor, err: %v", conn.RemoteAddr(), err)
+		},
+	)
+}
+
+func NewAryadbServer(opt *Options) (*server, error) {
+	if opt.Dir == "" || opt.ValueDir == "" {
+		return nil, errors.New("WorkingDir or ValueDir not provided.")
+	}
+	storage, err := engine.NewBadgerStorage(opt.Dir, opt.ValueDir, opt.SyncWrites)
 	if err != nil {
 		panic(err)
 	}
 	server := &server{
 		db:       storage,
-		Auth:     "",
+		Options:  opt,
 		Handlers: make(map[string]*handler),
 	}
 	server.RegisterAll()
-	return server
+	return server, nil
 }

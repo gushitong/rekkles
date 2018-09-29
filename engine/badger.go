@@ -135,10 +135,11 @@ func (t badgeTxn) Discard() {
 	t.Txn.Discard()
 }
 
-func NewBadgerStorage(dir, valueDir string) (*badgerStorage, error) {
+func NewBadgerStorage(dir, valueDir string, syncWrites bool) (*badgerStorage, error) {
 	opts := badger.DefaultOptions
 	opts.Dir = dir
 	opts.ValueDir = valueDir
+	opts.SyncWrites = syncWrites
 	bdg, err := badger.Open(opts)
 	if err != nil {
 		return nil, err

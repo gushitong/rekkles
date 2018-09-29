@@ -230,7 +230,7 @@ func incrby(db stor.DB, conn aryConnection, cmd aryCommand) {
 	conn.WriteInt64(v)
 }
 
-func incrfloat(db stor.DB, conn aryConnection, cmd aryCommand) {
+func incrbyfloat(db stor.DB, conn aryConnection, cmd aryCommand) {
 	var v float64
 	err := db.Update(func(txn stor.Transaction) error {
 		n1, err := strconv.ParseFloat(string(cmd.Args[1]), 64)

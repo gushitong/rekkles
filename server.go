@@ -98,7 +98,7 @@ func (s *server) RegisterAll() {
 	s.Register("getset", getset, 2)
 	s.Register("incr", incr, 1)
 	s.Register("incrby", incrby, 2)
-	s.Register("incrfloat", incrfloat, 2)
+	s.Register("incrbyfloat", incrbyfloat, 2)
 	s.Register("mget", mget, -1)
 	s.Register("mset", mset, -1)
 	s.Register("msetnx", msetnx, -1)

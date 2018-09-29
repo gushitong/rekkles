@@ -40,7 +40,7 @@ PONG
 ## Redis Command Support
 
 |  Strings   | Lists    | Hashes    | Sets      | Sorted Sets   |
-|:----------:|:--------:|:---------:|:---------:|:-------------:|
+|------------|----------|-----------|-----------|---------------|
 | `append`   | `lindex` | `hdel`    | `sadd`    | `zadd`        |
 | `decr`     | `llen`   | `hexists` | `scard`   | `zcard`       |
 | `decrby`   | `lpop`   | `hget`    | `sismember`| `zcount`     |
@@ -50,7 +50,7 @@ PONG
 | `getset`   | `lset`   | `hkeys`   |           | `zrange`      |
 | `incr`     |          | `hlen`    |           | `zrangebyscore`|   
 | `incrby`   |          | `hmget`   |           | `zrank`       |
-| `incrfloat`|          | `hmset`   |           | `zrevrange`   |
+| `incrbyfloat`|        | `hmset`   |           | `zrevrange`   |
 | `mget`     |          | `hscan`   |           | `zrevrangebyscore`|
 | `mset`     |          | `hset`    |           | `zrevrank`    |
 | `msetnx`   |          | `hsetnx`  |           | `zscore`      |  

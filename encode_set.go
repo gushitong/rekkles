@@ -1,6 +1,6 @@
 package main
 
-import "github.com/gushitong/aryadb/ut"
+import "github.com/gushitong/rekkles/ut"
 
 type SetEncoder struct {
 	key []byte

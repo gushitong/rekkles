@@ -1,12 +1,12 @@
 
-# aryadb
+# rekkles
 
-[![Build Status](https://travis-ci.com/gushitong/aryadb.svg?branch=master)](https://travis-ci.com/gushitong/aryadb)
-[![NoSQL](https://img.shields.io/badge/db-NoSQL-blue.svg)](https://github.com/gushitong/aryadb)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gushitong/aryadb?service=github)](https://goreportcard.com/report/github.com/gushitong/aryadb)
-[![License](https://img.shields.io/badge/License-Apache-green.svg)]((https://github.com/gushitong/aryadb))
+[![Build Status](https://travis-ci.com/gushitong/rekkles.svg?branch=master)](https://travis-ci.com/gushitong/rekkles)
+[![NoSQL](https://img.shields.io/badge/db-NoSQL-blue.svg)](https://github.com/gushitong/rekkles)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gushitong/rekkles?service=github)](https://goreportcard.com/report/github.com/gushitong/rekkles)
+[![License](https://img.shields.io/badge/License-Apache-green.svg)]((https://github.com/gushitong/rekkles))
 
-aryadb is a high performance no-sql database build on [BadgerDB](https://github.com/dgraph-io/badger) with redis protocol
+rekkles is a high performance no-sql database build on [BadgerDB](https://github.com/dgraph-io/badger) with redis protocol
 support. It meant to provide a key-value store alternative to redis.
 
 * Pure `golang` implementation, no `c/c++` dependency
@@ -17,35 +17,35 @@ support. It meant to provide a key-value store alternative to redis.
 ## Install
 
 ```bash
-go get github.com/gushitong/aryadb
+go get github.com/gushitong/rekkles
 ```
 
-* `aryadb` server start options:
+* `rekkles` server start options:
 
 ```bash
-aryadb -h
-Usage of aryadb:
+rekkles -h
+Usage of rekkles:
   -a string
     	auth string
   -b string
     	listen address (default ":6380")
   -d string
-    	working dir (default "/tmp/aryadb")
+    	working dir (default "/tmp/rekkles")
   -v string
-    	value log dir (default "/tmp/aryadb")
+    	value log dir (default "/tmp/rekkles")
   -s bool	
         sync all writes to disk. Setting this to false would achieve better performance, but may cause data to be lost. (default true)
 ```
 
 ## Example   
  
-* start `aryadb` server: 
+* start `rekkles` server: 
 ```bash
-$ aryadb -d /tmp/araydb -v /tmp/araydb -b :6380
+$ rekkles -d /tmp/araydb -v /tmp/araydb -b :6380
 2018/09/29 12:05:53 started server at :6380    
 ```    
 
-* connect `aryadb` with `redis-cli`:
+* connect `rekkles` with `redis-cli`:
 ```bash
 $ redis-cli -p 6380
 127.0.0.1:6380> SET k 1
@@ -86,7 +86,7 @@ PONG
 
 ## Benchmark
 
-This benchmark running on my local mac, `aryadb` should have better performance on SSD.
+This benchmark running on my local mac, `rekkles` should have better performance on SSD.
 
 * redis:
 
@@ -111,7 +111,7 @@ LRANGE_600 (first 600 elements): 4933.40 requests per second
 MSET (10 keys): 45871.56 requests per second
 ```
 
-* aryadb:
+* rekkles:
 
 ```bash
 $ redis-benchmark -p 6380 -c 50 -n 10000 -q 

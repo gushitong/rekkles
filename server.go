@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/gushitong/aryadb/engine"
-	"github.com/gushitong/aryadb/stor"
-	"github.com/gushitong/aryadb/ut"
+	"github.com/gushitong/rekkles/engine"
+	"github.com/gushitong/rekkles/stor"
+	"github.com/gushitong/rekkles/ut"
 	"github.com/pkg/errors"
 	"github.com/tidwall/redcon"
 )
@@ -20,8 +20,8 @@ type Options struct {
 var DefaultOptions = Options{
 	Addr:       ":6380",
 	Auth:       "",
-	Dir:        "/tmp/aryadb",
-	ValueDir:   "/tmp/aryadb",
+	Dir:        "/tmp/rekkles",
+	ValueDir:   "/tmp/rekkles",
 	SyncWrites: false,
 }
 
@@ -201,7 +201,7 @@ func (s *server) ListenAndSrv() error {
 	)
 }
 
-func NewAryadbServer(opt *Options) (*server, error) {
+func NewRekklesServer(opt *Options) (*server, error) {
 	if opt.Dir == "" || opt.ValueDir == "" {
 		return nil, errors.New("WorkingDir or ValueDir not provided.")
 	}

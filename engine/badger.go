@@ -2,8 +2,8 @@ package engine
 
 import (
 	"github.com/dgraph-io/badger"
-	"github.com/gushitong/aryadb/stor"
-	"github.com/gushitong/aryadb/ut"
+	"github.com/gushitong/rekkles/stor"
+	"github.com/gushitong/rekkles/ut"
 	"time"
 )
 

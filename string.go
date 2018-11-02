@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gushitong/aryadb/stor"
-	"github.com/gushitong/aryadb/ut"
+	"github.com/gushitong/rekkles/stor"
+	"github.com/gushitong/rekkles/ut"
 	"math/bits"
 	"strconv"
 	"time"

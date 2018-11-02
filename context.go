@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gushitong/aryadb/ut"
+	"github.com/gushitong/rekkles/ut"
 	"github.com/tidwall/redcon"
 )
 

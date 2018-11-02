@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/gushitong/aryadb/stor"
-	"github.com/gushitong/aryadb/ut"
+	"github.com/gushitong/rekkles/stor"
+	"github.com/gushitong/rekkles/ut"
 )
 
 func lindex(db stor.DB, conn aryConnection, cmd aryCommand) {

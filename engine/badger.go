@@ -128,7 +128,7 @@ func (t badgeTxn) NewIterator(ops stor.IteratorOptions) stor.Iterator {
 }
 
 func (t badgeTxn) Commit(fn func(error)) error {
-	return t.Txn.Commit(fn)
+	return t.Txn.Commit()
 }
 
 func (t badgeTxn) Discard() {
